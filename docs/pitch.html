@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Area10 Command Center — The Pitch</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#06080d}
+  body{font-family:'Inter',system-ui,sans-serif;color:#e2e8f0}
+
+  .slide{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    opacity:0;transform:translateY(30px);
+    transition:opacity 0.6s ease,transform 0.6s ease;
+    padding:60px;
+  }
+  .slide.active{opacity:1;transform:translateY(0)}
+  .slide.exit{opacity:0;transform:translateY(-30px)}
+
+  /* Backgrounds */
+  .bg-hero{background:radial-gradient(ellipse at 50% 30%,#1a103a 0%,#06080d 70%)}
+  .bg-problem{background:radial-gradient(ellipse at 30% 50%,#1a0a0a 0%,#06080d 70%)}
+  .bg-solution{background:radial-gradient(ellipse at 50% 50%,#0a1a2a 0%,#06080d 70%)}
+  .bg-features{background:radial-gradient(ellipse at 70% 40%,#0a1a15 0%,#06080d 70%)}
+  .bg-dashboard{background:radial-gradient(ellipse at 50% 60%,#0f1025 0%,#06080d 70%)}
+  .bg-cta{background:radial-gradient(ellipse at 50% 40%,#1a103a 0%,#06080d 70%)}
+
+  .mega{
+    font-size:clamp(2.5rem,6vw,5rem);font-weight:900;letter-spacing:-0.05em;
+    line-height:1.05;text-align:center;
+    background:linear-gradient(135deg,#a78bfa 0%,#60a5fa 40%,#34d399 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .mega-sub{
+    font-size:clamp(1rem,2vw,1.5rem);color:#64748b;text-align:center;
+    margin-top:16px;font-weight:400;max-width:700px;line-height:1.5;
+  }
+  .mega-sub strong{color:#94a3b8;font-weight:600}
+
+  .big{
+    font-size:clamp(1.8rem,4vw,3.5rem);font-weight:800;letter-spacing:-0.04em;
+    text-align:center;line-height:1.15;color:#e2e8f0;max-width:800px;
+  }
+  .big em{
+    font-style:normal;
+    background:linear-gradient(135deg,#f87171,#fbbf24);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .big .green{
+    background:linear-gradient(135deg,#34d399,#60a5fa);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+
+  .feature-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:20px;
+    max-width:900px;margin-top:40px;
+  }
+  @media(max-width:800px){.feature-grid{grid-template-columns:1fr 1fr}}
+  .feat{
+    background:rgba(15,20,35,0.8);border:1px solid #1e293b;border-radius:14px;
+    padding:24px;text-align:left;
+    animation:featIn 0.5s ease both;
+  }
+  .feat:nth-child(1){animation-delay:0.1s}
+  .feat:nth-child(2){animation-delay:0.2s}
+  .feat:nth-child(3){animation-delay:0.3s}
+  .feat:nth-child(4){animation-delay:0.4s}
+  .feat:nth-child(5){animation-delay:0.5s}
+  .feat:nth-child(6){animation-delay:0.6s}
+  @keyframes featIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  .feat-icon{font-size:1.8rem;margin-bottom:10px}
+  .feat-title{font-size:0.95rem;font-weight:700;color:#e2e8f0;margin-bottom:6px}
+  .feat-desc{font-size:0.78rem;color:#64748b;line-height:1.5}
+
+  .stat-row{
+    display:flex;gap:48px;margin-top:48px;flex-wrap:wrap;justify-content:center;
+  }
+  .stat{text-align:center}
+  .stat-num{
+    font-size:clamp(2.5rem,5vw,4rem);font-weight:900;
+    font-family:'JetBrains Mono',monospace;
+    background:linear-gradient(135deg,#a78bfa,#60a5fa);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .stat-label{font-size:0.8rem;color:#475588;text-transform:uppercase;letter-spacing:0.1em;margin-top:4px}
+
+  .terminal{
+    background:#0c0f1a;border:1px solid #1e293b;border-radius:14px;
+    padding:24px 28px;max-width:650px;width:100%;margin-top:32px;
+    font-family:'JetBrains Mono',monospace;font-size:0.85rem;
+    line-height:1.8;text-align:left;
+  }
+  .terminal .prompt{color:#a78bfa;font-weight:700}
+  .terminal .cmd{color:#e2e8f0}
+  .terminal .comment{color:#334155}
+  .terminal .output{color:#34d399}
+
+  .cta-btn{
+    display:inline-block;margin-top:36px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    color:#fff;padding:14px 36px;border-radius:12px;
+    font-size:1rem;font-weight:700;letter-spacing:-0.01em;
+    text-decoration:none;border:none;cursor:pointer;
+    transition:transform 0.2s,box-shadow 0.2s;
+  }
+  .cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(99,102,241,0.3)}
+
+  .version-badge{
+    display:inline-block;background:rgba(99,102,241,0.12);color:#a78bfa;
+    padding:6px 16px;border-radius:20px;font-size:0.8rem;font-weight:700;
+    margin-bottom:20px;letter-spacing:0.05em;border:1px solid rgba(99,102,241,0.2);
+  }
+
+  /* Progress bar */
+  .progress{
+    position:fixed;top:0;left:0;height:3px;
+    background:linear-gradient(90deg,#a78bfa,#60a5fa,#34d399);
+    transition:width 0.3s;z-index:100;
+  }
+
+  /* Navigation dots */
+  .dots{
+    position:fixed;right:24px;top:50%;transform:translateY(-50%);
+    display:flex;flex-direction:column;gap:10px;z-index:100;
+  }
+  .dot{
+    width:10px;height:10px;border-radius:50%;
+    background:#1e293b;border:1px solid #334155;
+    cursor:pointer;transition:all 0.3s;
+  }
+  .dot.active{background:#a78bfa;border-color:#a78bfa;transform:scale(1.3)}
+  .dot:hover{background:#475588}
+
+  /* Keyboard hint */
+  .kb-hint{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    color:#334155;font-size:0.7rem;z-index:100;
+    display:flex;gap:16px;align-items:center;
+  }
+  .kb-hint kbd{
+    background:#111827;border:1px solid #1e293b;border-radius:4px;
+    padding:2px 8px;font-family:'JetBrains Mono',monospace;
+  }
+
+  .glow{
+    position:absolute;width:300px;height:300px;border-radius:50%;
+    background:radial-gradient(circle,rgba(99,102,241,0.08) 0%,transparent 70%);
+    pointer-events:none;
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress" style="width:0%"></div>
+
+<div class="dots" id="dots"></div>
+
+<!-- SLIDE 0: HERO -->
+<div class="slide bg-hero active" data-slide="0">
+  <div class="version-badge">AREA10 PEERS v4.0</div>
+  <div class="mega">Command Center</div>
+  <p class="mega-sub">
+    Mission control for autonomous AI agent teams.<br>
+    Direct, monitor, and coordinate <strong>from your browser</strong>.
+  </p>
+  <div class="stat-row">
+    <div class="stat"><div class="stat-num">20</div><div class="stat-label">MCP Tools</div></div>
+    <div class="stat"><div class="stat-num">0</div><div class="stat-label">Dependencies</div></div>
+    <div class="stat"><div class="stat-num">88</div><div class="stat-label">Tests</div></div>
+  </div>
+</div>
+
+<!-- SLIDE 1: THE PROBLEM -->
+<div class="slide bg-problem" data-slide="1">
+  <div class="big">
+    Your AI agents are <em>flying blind</em>
+  </div>
+  <p class="mega-sub" style="margin-top:28px">
+    Multiple Claude Code sessions. No shared state.<br>
+    No visibility. No control. No audit trail.<br>
+    <strong>You're switching terminals like it's 1999.</strong>
+  </p>
+</div>
+
+<!-- SLIDE 2: THE SOLUTION -->
+<div class="slide bg-solution" data-slide="2">
+  <div class="big">
+    One browser tab.<br><span class="green">Total control.</span>
+  </div>
+  <p class="mega-sub" style="margin-top:28px">
+    C2 Lattice turns your browser into a <strong>command center</strong>.<br>
+    See every agent. Send messages. Pause anyone. Set budgets.<br>
+    All without switching a single terminal.
+  </p>
+</div>
+
+<!-- SLIDE 3: FEATURES -->
+<div class="slide bg-features" data-slide="3">
+  <div class="big" style="font-size:clamp(1.5rem,3vw,2.5rem)">
+    Everything you need to <span class="green">direct a team</span>
+  </div>
+  <div class="feature-grid">
+    <div class="feat">
+      <div class="feat-icon">&#x23F8;</div>
+      <div class="feat-title">Pause &amp; Resume</div>
+      <div class="feat-desc">Freeze any agent mid-task. Send corrections. Resume. All within seconds.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">&#x1F4CA;</div>
+      <div class="feat-title">Budget Caps</div>
+      <div class="feat-desc">Token limits per agent with visual bars. No runaway quota burn.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">&#x1F6A8;</div>
+      <div class="feat-title">Auto-Escalation</div>
+      <div class="feat-desc">Blockers route to you automatically. Errors broadcast to all. Nothing silent.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">&#x1F333;</div>
+      <div class="feat-title">Git Awareness</div>
+      <div class="feat-desc">See every agent's branch and dirty files. Conflict warnings before they collide.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">&#x1F9E0;</div>
+      <div class="feat-title">Versioned Memory</div>
+      <div class="feat-desc">Shared decisions with history. Type, confidence, and version tracking.</div>
+    </div>
+    <div class="feat">
+      <div class="feat-icon">&#x1F3AF;</div>
+      <div class="feat-title">Task DAGs</div>
+      <div class="feat-desc">Dependencies that auto-unblock. Artifacts required. No empty "done".</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: HOW IT WORKS -->
+<div class="slide bg-dashboard" data-slide="4">
+  <div class="big" style="font-size:clamp(1.5rem,3vw,2.2rem);margin-bottom:8px">
+    Three commands to launch
+  </div>
+  <div class="terminal">
+    <div><span class="prompt">$</span> <span class="cmd">python install.py</span></div>
+    <div><span class="comment"># registers MCP server globally</span></div>
+    <div style="margin-top:8px"><span class="prompt">$</span> <span class="cmd">python broker.py</span></div>
+    <div><span class="output">[broker] Dashboard: http://127.0.0.1:7899/dashboard</span></div>
+    <div style="margin-top:8px"><span class="prompt">$</span> <span class="cmd">claude</span></div>
+    <div><span class="output">[c2-lattice] Registered as 'worker-a7x2'</span></div>
+    <div style="margin-top:12px"><span class="comment"># open the command center in your browser</span></div>
+    <div><span class="comment"># pause agents, set budgets, send messages</span></div>
+    <div><span class="comment"># all from one tab. zero terminal switching.</span></div>
+  </div>
+</div>
+
+<!-- SLIDE 5: CTA -->
+<div class="slide bg-cta" data-slide="5">
+  <div class="version-badge">PYTHON STDLIB ONLY &mdash; ZERO DEPENDENCIES</div>
+  <div class="mega" style="font-size:clamp(2rem,5vw,4rem)">
+    Stop switching terminals.<br>Start commanding agents.
+  </div>
+  <p class="mega-sub" style="margin-top:20px">
+    <strong>20 tools. 96 tests. One browser tab.</strong>
+  </p>
+  <a class="cta-btn" href="https://github.com/GlobalCan/c2-lattice" target="_blank">
+    View on GitHub
+  </a>
+</div>
+
+<div class="kb-hint">
+  <span><kbd>&#x2190;</kbd> <kbd>&#x2192;</kbd> Navigate</span>
+  <span><kbd>Space</kbd> Next</span>
+</div>
+
+<script>
+const slides=document.querySelectorAll('.slide');
+const total=slides.length;
+let current=0;
+
+/* Build dots */
+const dotsEl=document.getElementById('dots');
+for(let i=0;i<total;i++){
+  const d=document.createElement('div');
+  d.className='dot'+(i===0?' active':'');
+  d.onclick=()=>goTo(i);
+  dotsEl.appendChild(d);
+}
+
+function goTo(n){
+  if(n<0||n>=total||n===current)return;
+  slides[current].classList.remove('active');
+  slides[current].classList.add('exit');
+  setTimeout(()=>slides[current].classList.remove('exit'),600);
+  current=n;
+  slides[current].classList.add('active');
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===current));
+  document.getElementById('progress').style.width=((current/(total-1))*100)+'%';
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' ')goTo(current+1);
+  if(e.key==='ArrowLeft')goTo(current-1);
+});
+
+/* Touch/swipe */
+let touchX=0;
+document.addEventListener('touchstart',e=>touchX=e.touches[0].clientX);
+document.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-touchX;
+  if(Math.abs(dx)>50){dx<0?goTo(current+1):goTo(current-1)}
+});
+
+/* Auto-advance every 10s */
+let autoTimer=setInterval(()=>goTo(current<total-1?current+1:0),10000);
+document.addEventListener('keydown',()=>{clearInterval(autoTimer)});
+document.addEventListener('click',()=>{clearInterval(autoTimer)});
+</script>
+</body>
+</html>

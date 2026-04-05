@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C2 Lattice — Chaos Test Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06080d;--bg2:#0a0e17;--bg3:#111827;
+  --border:rgba(255,255,255,0.06);
+  --text:#c8d0dc;--dim:#6b7a90;--bright:#f0f4f8;
+  --green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;
+  --amber:#f59e0b;--red:#ef4444;--pink:#ec4899;--cyan:#06b6d4;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;overflow-x:hidden}
+code{font-family:'JetBrains Mono',monospace;font-size:0.85em}
+
+/* ===== 1. HERO ===== */
+.hero{text-align:center;padding:56px 24px 40px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(34,197,94,0.12),transparent 70%);pointer-events:none}
+.hero-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.2em;color:var(--green);margin-bottom:8px}
+.hero h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:900;color:var(--bright);letter-spacing:-0.04em;line-height:1.05;margin-bottom:12px}
+.hero-oneliner{font-size:0.88rem;color:var(--dim);margin-bottom:20px}
+.hero-oneliner strong{color:var(--bright)}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:var(--green);font-weight:800;font-size:0.8rem;padding:8px 24px;border-radius:24px;letter-spacing:0.08em;text-transform:uppercase}
+.hero-badge::before{content:'';width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ===== 2. STAT STRIP ===== */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:720px;margin:0 auto 40px;padding:0 24px}
+@media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{text-align:center;padding:20px 8px;border-radius:14px;background:rgba(255,255,255,0.025);border:1px solid var(--border);backdrop-filter:blur(8px)}
+.stat-num{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:900;line-height:1}
+.stat-lbl{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--dim);margin-top:6px}
+
+/* ===== 3. FAILURE GRID ===== */
+.section{max-width:900px;margin:0 auto;padding:0 24px 40px}
+.sec-label{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.18em;color:var(--green);margin-bottom:6px}
+.sec-title{font-size:1.5rem;font-weight:800;color:var(--bright);letter-spacing:-0.02em;margin-bottom:20px}
+.fail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:700px){.fail-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.fail-grid{grid-template-columns:1fr}}
+.fail{padding:16px;border-radius:12px;border-left:3px solid;position:relative}
+.fail-icon{font-size:1.2rem;margin-bottom:4px}
+.fail h4{font-size:0.78rem;font-weight:700;color:var(--bright);margin-bottom:2px}
+.fail p{font-size:0.7rem;color:var(--dim);line-height:1.5}
+.fail.kill{border-color:var(--red);background:rgba(239,68,68,0.04)}
+.fail.budget{border-color:var(--amber);background:rgba(245,158,11,0.04)}
+.fail.pause{border-color:var(--amber);background:rgba(245,158,11,0.04)}
+.fail.lock{border-color:var(--purple);background:rgba(139,92,246,0.04)}
+.fail.mem{border-color:var(--blue);background:rgba(59,130,246,0.04)}
+.fail.storm{border-color:var(--pink);background:rgba(236,72,153,0.04)}
+
+/* ===== 4. DAG ===== */
+.dag-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.dag-wrap{grid-template-columns:1fr}}
+.dag-panel{padding:24px;border-radius:14px;background:rgba(255,255,255,0.02);border:1px solid var(--border)}
+.dag-panel h3{font-size:0.82rem;font-weight:700;color:var(--bright);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.dag-tag{font-size:0.6rem;padding:3px 10px;border-radius:10px;font-weight:600}
+.dag-tag.auth{background:rgba(59,130,246,0.15);color:var(--blue)}
+.dag-tag.dash{background:rgba(139,92,246,0.15);color:var(--purple)}
+.dag-graph{display:flex;flex-direction:column;align-items:center;gap:0}
+.dag-row{display:flex;gap:20px;justify-content:center}
+.dag-node{padding:8px 14px;border-radius:8px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;text-align:center;min-width:90px;background:rgba(34,197,94,0.07);border:1px solid rgba(34,197,94,0.25);color:var(--green)}
+.dag-node .tid{font-size:0.58rem;color:var(--dim);margin-bottom:1px}
+.dag-node .towner{font-size:0.55rem;color:var(--dim);margin-top:2px;font-weight:400}
+.dag-line{width:2px;height:16px;background:rgba(34,197,94,0.2);margin:0 auto}
+.dag-svg{display:block;margin:0 auto}
+
+/* ===== 5. TIMELINE ===== */
+.tl{position:relative;padding-left:28px}
+.tl::before{content:'';position:absolute;left:8px;top:4px;bottom:4px;width:2px;background:rgba(255,255,255,0.06)}
+.tl-dot{position:relative;padding:6px 0 6px 20px;font-size:0.75rem;color:var(--dim);line-height:1.5}
+.tl-dot::before{content:'';position:absolute;left:-22px;top:11px;width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.12);z-index:1}
+.tl-dot.red::before{width:12px;height:12px;left:-24px;top:9px;background:var(--red);border-color:var(--red);box-shadow:0 0 10px rgba(239,68,68,0.5)}
+.tl-dot.red{color:var(--red);font-weight:600}
+.tl-dot.amber::before{width:12px;height:12px;left:-24px;top:9px;background:var(--amber);border-color:var(--amber);box-shadow:0 0 10px rgba(245,158,11,0.5)}
+.tl-dot.amber{color:var(--amber);font-weight:600}
+.tl-dot.grn::before{width:12px;height:12px;left:-24px;top:9px;background:var(--green);border-color:var(--green);box-shadow:0 0 10px rgba(34,197,94,0.5)}
+.tl-dot.grn{color:var(--green);font-weight:600}
+.tl-step{font-family:'JetBrains Mono',monospace;font-weight:700;margin-right:6px;font-size:0.65rem;opacity:0.7}
+.tl-dot.red .tl-step,.tl-dot.amber .tl-step,.tl-dot.grn .tl-step{opacity:1}
+.tl-gap{padding:4px 0 4px 20px;font-size:0.6rem;color:rgba(255,255,255,0.15);letter-spacing:2px}
+
+/* ===== 6. TEAM ===== */
+.team-row{display:flex;flex-wrap:wrap;justify-content:center;gap:20px}
+.peer{display:flex;flex-direction:column;align-items:center;gap:6px;width:72px}
+.peer-av{width:44px;height:44px;border-radius:50%;position:relative}
+.peer-dot{position:absolute;bottom:0;right:0;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg)}
+.peer-dot.live{background:var(--green);box-shadow:0 0 6px rgba(34,197,94,0.6)}
+.peer-dot.dead{background:var(--red);box-shadow:0 0 6px rgba(239,68,68,0.6)}
+.peer-name{font-family:'JetBrains Mono',monospace;font-size:0.58rem;font-weight:600;color:var(--dim);text-align:center;line-height:1.2}
+.peer-crown{position:absolute;top:-8px;left:50%;transform:translateX(-50%);font-size:0.7rem}
+.peer.dead-peer{opacity:0.45}
+
+/* ===== 7. BUGS ===== */
+.bug-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+@media(max-width:600px){.bug-grid{grid-template-columns:1fr}}
+.bug{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.02);border:1px solid var(--border);font-size:0.75rem}
+.bug-x{color:var(--red);font-weight:800;font-size:0.8rem;flex-shrink:0}
+.bug-ck{color:var(--green);font-weight:800;font-size:0.8rem;flex-shrink:0}
+.bug-txt{color:var(--text);flex:1}
+.bug-tag{font-size:0.55rem;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:0.05em;flex-shrink:0}
+.bug-tag.s{background:rgba(245,158,11,0.12);color:var(--amber)}
+.bug-tag.c{background:rgba(239,68,68,0.12);color:var(--red)}
+.bug-tag.p{background:rgba(139,92,246,0.12);color:var(--purple)}
+
+/* ===== 8. VERDICT ===== */
+.verdict{text-align:center;padding:48px 24px 56px;position:relative}
+.verdict::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:200px;background:radial-gradient(ellipse,rgba(34,197,94,0.1),transparent 70%);pointer-events:none}
+.verdict-num{font-family:'JetBrains Mono',monospace;font-size:clamp(3rem,8vw,5rem);font-weight:900;color:var(--green);line-height:1}
+.verdict-sub{font-size:0.78rem;color:var(--dim);margin:8px 0 20px}
+.verdict-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.25);color:var(--green);font-weight:800;font-size:0.9rem;padding:10px 32px;border-radius:28px;letter-spacing:0.06em;text-transform:uppercase}
+.verdict-pill::before{content:'';width:12px;height:12px;border-radius:50%;background:var(--green);box-shadow:0 0 16px var(--green),0 0 40px rgba(34,197,94,0.3);animation:pulse 2s infinite}
+
+/* footer */
+footer{text-align:center;padding:24px;font-size:0.6rem;color:var(--dim);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- 1. HERO -->
+<div class="hero">
+  <div class="hero-label">Chaos Engineering Report</div>
+  <h1>7-Peer Resilience Test</h1>
+  <p class="hero-oneliner"><strong>8/8</strong> tasks &bull; <strong>6</strong> failure injections &bull; <strong>174+</strong> tests &bull; <strong>10</strong> bugs fixed</p>
+  <div class="hero-badge">All Passing</div>
+</div>
+
+<!-- 2. STAT STRIP -->
+<div class="stats">
+  <div class="stat"><div class="stat-num" style="color:var(--green)">8/8</div><div class="stat-lbl">Tasks</div></div>
+  <div class="stat"><div class="stat-num" style="color:var(--blue)">8</div><div class="stat-lbl">Peers</div></div>
+  <div class="stat"><div class="stat-num" style="color:var(--red)">6</div><div class="stat-lbl">Failures</div></div>
+  <div class="stat"><div class="stat-num" style="color:var(--green)">10</div><div class="stat-lbl">Bugs Fixed</div></div>
+</div>
+
+<!-- 3. FAILURE GRID -->
+<div class="section">
+  <div class="sec-label">What We Threw At It</div>
+  <div class="sec-title">6 Failure Injections</div>
+  <div class="fail-grid">
+    <div class="fail kill">
+      <div class="fail-icon">&#x2620;</div>
+      <h4>Worker KILLED</h4>
+      <p>chaos-w2 terminated mid-task. T3 auto-reassigned to replacement.</p>
+    </div>
+    <div class="fail budget">
+      <div class="fail-icon">&#x1f4b0;</div>
+      <h4>Budget EXCEEDED</h4>
+      <p>chaos-w0 hit 150/100 tokens. Next claim rejected by broker.</p>
+    </div>
+    <div class="fail pause">
+      <div class="fail-icon">&#x23f8;&#xfe0f;</div>
+      <h4>Worker PAUSED</h4>
+      <p>chaos-w3 paused mid-task, then resumed. No data loss.</p>
+    </div>
+    <div class="fail lock">
+      <div class="fail-icon">&#x1f512;</div>
+      <h4>File Lock CONTENTION</h4>
+      <p>Two workers raced for Layout.tsx. Lock held, second blocked correctly.</p>
+    </div>
+    <div class="fail mem">
+      <div class="fail-icon">&#x1f5c4;</div>
+      <h4>Concurrent MEMORY</h4>
+      <p>Two writes to same key. Versioning resolved: last-write-wins.</p>
+    </div>
+    <div class="fail storm">
+      <div class="fail-icon">&#x1f514;</div>
+      <h4>Escalation STORM</h4>
+      <p>4 simultaneous escalations delivered to architect. Zero lost.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 4. TASK DAG -->
+<div class="section">
+  <div class="sec-label">Task Dependencies</div>
+  <div class="sec-title">Diamond + Fan-Out DAGs</div>
+  <div class="dag-wrap">
+    <div class="dag-panel">
+      <h3><span class="dag-tag auth">RUN 1</span> Auth System</h3>
+      <div class="dag-graph">
+        <div class="dag-row"><div class="dag-node"><div class="tid">#1</div>DB Schema<div class="towner">chaos-w0</div></div></div>
+        <div class="dag-line"></div>
+        <svg class="dag-svg" width="200" height="20"><line x1="100" y1="0" x2="44" y2="20" stroke="rgba(34,197,94,0.25)" stroke-width="2"/><line x1="100" y1="0" x2="156" y2="20" stroke="rgba(34,197,94,0.25)" stroke-width="2"/></svg>
+        <div class="dag-row">
+          <div class="dag-node"><div class="tid">#2</div>JWT<div class="towner">chaos-w1</div></div>
+          <div class="dag-node"><div class="tid">#3</div>OAuth<div class="towner">w2-repl</div></div>
+        </div>
+        <svg class="dag-svg" width="200" height="20"><line x1="44" y1="0" x2="100" y2="20" stroke="rgba(34,197,94,0.25)" stroke-width="2"/><line x1="156" y1="0" x2="100" y2="20" stroke="rgba(34,197,94,0.25)" stroke-width="2"/></svg>
+        <div class="dag-row"><div class="dag-node"><div class="tid">#4</div>Integration<div class="towner">chaos-w3</div></div></div>
+        <div class="dag-line"></div>
+        <div class="dag-row"><div class="dag-node"><div class="tid">#5</div>E2E Tests<div class="towner">chaos-w1</div></div></div>
+      </div>
+    </div>
+    <div class="dag-panel">
+      <h3><span class="dag-tag dash">RUN 2</span> Dashboard</h3>
+      <div class="dag-graph">
+        <div class="dag-row"><div class="dag-node"><div class="tid">#6</div>Components<div class="towner">chaos-w4</div></div></div>
+        <div class="dag-line"></div>
+        <svg class="dag-svg" width="200" height="20"><line x1="100" y1="0" x2="44" y2="20" stroke="rgba(34,197,94,0.25)" stroke-width="2"/><line x1="100" y1="0" x2="156" y2="20" stroke="rgba(34,197,94,0.25)" stroke-width="2"/></svg>
+        <div class="dag-row">
+          <div class="dag-node"><div class="tid">#7</div>User Mgmt<div class="towner">chaos-w3</div></div>
+          <div class="dag-node"><div class="tid">#8</div>Analytics<div class="towner">chaos-w4</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. TIMELINE -->
+<div class="section">
+  <div class="sec-label">Event Timeline</div>
+  <div class="sec-title">26 Steps, 6 Incidents</div>
+  <div class="tl">
+    <div class="tl-dot"><span class="tl-step">01</span> Architect spawns 5 workers, creates both task DAGs</div>
+    <div class="tl-dot"><span class="tl-step">04</span> W0 completes T1 (DB Schema) &mdash; T2 + T3 unblocked</div>
+    <div class="tl-dot"><span class="tl-step">08</span> W1 completes T2 (JWT) &mdash; 8 tests passing</div>
+    <div class="tl-dot"><span class="tl-step">09</span> W4 completes T6 (Components) &mdash; T7 + T8 unblocked</div>
+    <div class="tl-dot red"><span class="tl-step">10</span> W2 KILLED mid-task &mdash; T3 auto-unassigned, replacement spawned</div>
+    <div class="tl-gap">...</div>
+    <div class="tl-dot amber"><span class="tl-step">13</span> W0 task claim REJECTED &mdash; budget 150/100 exceeded</div>
+    <div class="tl-dot"><span class="tl-step">15</span> chaos-w2-repl completes T3 &mdash; Google + GitHub OAuth done</div>
+    <div class="tl-dot amber"><span class="tl-step">16</span> W3 PAUSED by architect mid-task on T7</div>
+    <div class="tl-dot grn"><span class="tl-step">17</span> W3 RESUMED &mdash; continues without data loss</div>
+    <div class="tl-gap">...</div>
+    <div class="tl-dot amber"><span class="tl-step">20</span> File lock CONTENTION &mdash; W4 blocked on Layout.tsx</div>
+    <div class="tl-dot amber"><span class="tl-step">22</span> Concurrent memory writes on api-version &mdash; resolved via versioning</div>
+    <div class="tl-dot"><span class="tl-step">25</span> 4 simultaneous escalations delivered to architect (zero lost)</div>
+    <div class="tl-dot grn"><span class="tl-step">26</span> W1 completes T5 &mdash; 22 E2E tests passing. All tasks done.</div>
+  </div>
+</div>
+
+<!-- 6. THE TEAM -->
+<div class="section">
+  <div class="sec-label">The Team</div>
+  <div class="sec-title">8 Peers</div>
+  <div class="team-row">
+    <div class="peer">
+      <div class="peer-av" style="background:linear-gradient(135deg,var(--blue),var(--cyan))">
+        <div class="peer-crown">&#x2B50;</div>
+        <div class="peer-dot live"></div>
+      </div>
+      <div class="peer-name">chaos-arch</div>
+    </div>
+    <div class="peer">
+      <div class="peer-av" style="background:linear-gradient(135deg,var(--amber),var(--red))">
+        <div class="peer-dot live"></div>
+      </div>
+      <div class="peer-name">chaos-w0</div>
+    </div>
+    <div class="peer">
+      <div class="peer-av" style="background:linear-gradient(135deg,var(--green),var(--cyan))">
+        <div class="peer-dot live"></div>
+      </div>
+      <div class="peer-name">chaos-w1</div>
+    </div>
+    <div class="peer dead-peer">
+      <div class="peer-av" style="background:linear-gradient(135deg,#444,#666)">
+        <div class="peer-dot dead"></div>
+      </div>
+      <div class="peer-name">chaos-w2</div>
+    </div>
+    <div class="peer">
+      <div class="peer-av" style="background:linear-gradient(135deg,var(--purple),var(--blue))">
+        <div class="peer-dot live"></div>
+      </div>
+      <div class="peer-name">w2-repl</div>
+    </div>
+    <div class="peer">
+      <div class="peer-av" style="background:linear-gradient(135deg,var(--pink),var(--purple))">
+        <div class="peer-dot live"></div>
+      </div>
+      <div class="peer-name">chaos-w3</div>
+    </div>
+    <div class="peer">
+      <div class="peer-av" style="background:linear-gradient(135deg,var(--cyan),var(--green))">
+        <div class="peer-dot live"></div>
+      </div>
+      <div class="peer-name">chaos-w4</div>
+    </div>
+    <div class="peer">
+      <div class="peer-av" style="background:linear-gradient(135deg,var(--green),var(--amber))">
+        <div class="peer-dot live"></div>
+      </div>
+      <div class="peer-name">reporter</div>
+    </div>
+  </div>
+</div>
+
+<!-- 7. BUGS SQUASHED -->
+<div class="section">
+  <div class="sec-label">Bugs Squashed</div>
+  <div class="sec-title">10 Found &amp; Fixed</div>
+  <div class="bug-grid">
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">Double-complete returns 409</span><span class="bug-ck">&#x2713;</span><span class="bug-tag s">Stress</span></div>
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">data: URI bypass blocked</span><span class="bug-ck">&#x2713;</span><span class="bug-tag s">Stress</span></div>
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">Memory history missing version</span><span class="bug-ck">&#x2713;</span><span class="bug-tag s">Stress</span></div>
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">Dashboard test assertion fail</span><span class="bug-ck">&#x2713;</span><span class="bug-tag s">Stress</span></div>
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">run_id missing from task create</span><span class="bug-ck">&#x2713;</span><span class="bug-tag c">Chaos</span></div>
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">Potential deadlock in lock acq</span><span class="bug-ck">&#x2713;</span><span class="bug-tag p">Prev</span></div>
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">LIKE match not delimiter-aware</span><span class="bug-ck">&#x2713;</span><span class="bug-tag p">Prev</span></div>
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">Path normalization missing</span><span class="bug-ck">&#x2713;</span><span class="bug-tag p">Prev</span></div>
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">MCP error silently swallowed</span><span class="bug-ck">&#x2713;</span><span class="bug-tag p">Prev</span></div>
+    <div class="bug"><span class="bug-x">&#x2717;</span><span class="bug-txt">Numeric input crash (no try/except)</span><span class="bug-ck">&#x2713;</span><span class="bug-tag p">Prev</span></div>
+  </div>
+</div>
+
+<!-- 8. VERDICT -->
+<div class="verdict">
+  <div class="verdict-num">174+</div>
+  <div class="verdict-sub">99 unit &bull; 49 stress &bull; 26 chaos &bull; E2E pipeline</div>
+  <div class="verdict-pill">All Passing</div>
+</div>
+
+<footer>C2 Lattice &mdash; Chaos Engineering Report &mdash; 2026-04-04</footer>
+
+</body>
+</html>

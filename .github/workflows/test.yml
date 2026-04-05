@@ -1,0 +1,26 @@
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run unit tests
+        run: python test_broker.py
+      - name: Run stress tests
+        run: python stress_test.py
+      - name: Run E2E tests
+        run: python e2e_test.py
+      - name: Run chaos tests
+        run: python chaos_test.py
+      - name: Run idiot tests
+        run: python idiot_test.py

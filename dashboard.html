@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Area10 Command Center</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06080d;--panel:#0c1018;--panel-border:#141c2a;--panel-hover:#111827;
+  --text:#d1d5db;--text-dim:#6b7280;--text-bright:#f3f4f6;
+  --blue:#3b82f6;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--cyan:#06b6d4;--pink:#ec4899;
+  --blue-bg:rgba(59,130,246,0.08);--green-bg:rgba(16,185,129,0.08);--red-bg:rgba(239,68,68,0.08);
+  --amber-bg:rgba(245,158,11,0.08);--purple-bg:rgba(139,92,246,0.08);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--panel-border);flex-shrink:0}
+.topbar h1{font-size:1rem;font-weight:700;color:var(--text-bright);letter-spacing:-0.02em}
+.topbar .logo{display:flex;align-items:center;gap:10px}
+.topbar .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:dot-pulse 2s ease-in-out infinite}
+@keyframes dot-pulse{0%,100%{box-shadow:0 0 8px var(--green)}50%{box-shadow:0 0 16px var(--green),0 0 24px rgba(16,185,129,0.3)}}
+.subtitle{color:var(--text-dim);font-size:0.72rem;font-family:'JetBrains Mono',monospace}
+
+/* Bento grid */
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:1px;background:var(--panel-border);flex:1;overflow:hidden}
+.panel{background:var(--panel);padding:14px 16px;overflow-y:auto;position:relative}
+.panel::-webkit-scrollbar{width:4px}
+.panel::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.panel-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim)}
+.panel-count{font-size:0.65rem;color:var(--text-dim);background:#1e293b;padding:2px 8px;border-radius:10px}
+
+/* Stat strip - spans full width */
+.stat-strip{grid-column:1/-1;display:flex;gap:1px;background:var(--panel-border);padding:0}
+.stat-card{flex:1;background:var(--panel);padding:14px 18px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;transition:background 0.3s}
+.stat-card:hover{background:var(--panel-hover)}
+.stat-card:hover .stat-icon{transform:scale(1.08)}
+.stat-card:hover .stat-icon svg{filter:drop-shadow(0 0 6px currentColor)}
+.stat-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blue),transparent);opacity:0;transition:opacity 0.3s}
+.stat-card:hover::after{opacity:0.5}
+.stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;transition:transform 0.2s}
+.stat-icon svg{width:18px;height:18px;transition:filter 0.3s}
+.stat-icon.blue{background:var(--blue-bg);color:var(--blue)}
+.stat-icon.green{background:var(--green-bg);color:var(--green)}
+.stat-icon.amber{background:var(--amber-bg);color:var(--amber)}
+.stat-icon.red{background:var(--red-bg);color:var(--red)}
+.stat-icon.purple{background:var(--purple-bg);color:var(--purple)}
+.stat-info .stat-value{font-size:1.5rem;font-weight:800;color:var(--text-bright);line-height:1;font-family:'JetBrains Mono',monospace}
+.stat-info .stat-label{font-size:0.65rem;color:var(--text-dim);margin-top:2px;text-transform:uppercase;letter-spacing:0.06em}
+
+/* Donut + sparkline viz area */
+.stat-card-viz{flex:1.4;background:var(--panel);padding:10px 14px;display:flex;align-items:center;gap:14px}
+.donut-wrap{position:relative;width:56px;height:56px;flex-shrink:0}
+.donut-wrap svg{transform:rotate(-90deg)}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.85rem;font-weight:800;color:var(--text-bright);font-family:'JetBrains Mono',monospace}
+.donut-legend{display:flex;flex-direction:column;gap:3px}
+.donut-legend-item{display:flex;align-items:center;gap:5px;font-size:0.6rem;color:var(--text-dim)}
+.donut-legend-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.sparkline-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.sparkline-label{font-size:0.58rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em}
+
+/* Peers panel - 2 cols wide */
+.panel-peers{grid-column:span 2}
+.peer-card{background:var(--bg);border:1px solid var(--panel-border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px;transition:border-color 0.2s,box-shadow 0.2s}
+.peer-card:hover{border-color:#2d3748}
+.peer-card.conflict{border-color:rgba(245,158,11,0.4);animation:conflict-pulse 2s ease-in-out infinite;box-shadow:0 0 12px rgba(245,158,11,0.08)}
+@keyframes conflict-pulse{0%,100%{border-color:rgba(245,158,11,0.4);box-shadow:0 0 12px rgba(245,158,11,0.08)}50%{border-color:rgba(245,158,11,0.7);box-shadow:0 0 20px rgba(245,158,11,0.15)}}
+.peer-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:#fff;flex-shrink:0}
+.peer-avatar.arch{background:linear-gradient(135deg,var(--blue),var(--purple))}
+.peer-avatar.work{background:linear-gradient(135deg,var(--amber),#ea580c)}
+.peer-info{flex:1;min-width:0}
+.peer-name{font-size:0.8rem;font-weight:600;color:var(--text-bright);display:flex;align-items:center;gap:6px}
+.peer-meta{font-size:0.65rem;color:var(--text-dim);display:flex;gap:8px;margin-top:2px;font-family:'JetBrains Mono',monospace;align-items:center}
+.peer-actions{display:flex;gap:4px;flex-shrink:0}
+.peer-actions button{background:transparent;border:1px solid var(--panel-border);border-radius:4px;color:var(--text-dim);padding:3px 8px;cursor:pointer;font-size:0.6rem;font-family:inherit;font-weight:600;transition:all 0.15s}
+.peer-actions button:hover{border-color:var(--blue);color:var(--blue)}
+.peer-actions button.kill{color:var(--red);border-color:transparent}
+.peer-actions button.kill:hover{border-color:var(--red);background:var(--red-bg)}
+
+/* Progress ring for budget */
+.budget-ring{flex-shrink:0}
+.budget-ring svg{display:block}
+.budget-ring-text{font-size:6.5px;font-weight:700;font-family:'JetBrains Mono',monospace;fill:var(--text-bright);dominant-baseline:central;text-anchor:middle}
+.budget-ring-track{fill:none;stroke:#1e293b;stroke-width:2.5}
+.budget-ring-fill{fill:none;stroke-width:2.5;stroke-linecap:round;transition:stroke-dashoffset 0.6s ease}
+
+/* Badges */
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:0.6rem;font-weight:700;letter-spacing:0.03em}
+.badge-active{background:var(--green-bg);color:var(--green)}
+.badge-dead{background:var(--red-bg);color:var(--red)}
+.badge-paused{background:var(--red-bg);color:var(--red)}
+.badge-stuck{background:var(--red-bg);color:var(--red);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.badge-architect{background:var(--blue-bg);color:var(--blue)}
+.badge-worker{background:var(--amber-bg);color:var(--amber)}
+.badge-cat{background:rgba(6,182,212,0.1);color:var(--cyan)}
+.badge-blocker{background:var(--red-bg);color:var(--red);font-weight:800}
+.badge-review{background:var(--purple-bg);color:var(--purple)}
+
+/* Tables inside panels */
+.ptable{width:100%;border-collapse:collapse;font-size:0.72rem}
+.ptable th{text-align:left;color:var(--text-dim);padding:6px 8px;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid var(--panel-border)}
+.ptable td{padding:6px 8px;border-bottom:1px solid rgba(20,28,42,0.5);color:var(--text)}
+.ptable tr:hover td{background:rgba(30,41,59,0.15)}
+
+/* Attention items */
+.attn-item{border-radius:6px;padding:8px 10px;margin-bottom:4px;font-size:0.72rem;display:flex;align-items:flex-start;gap:8px}
+.attn-item .attn-icon{flex-shrink:0;width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:800}
+.attn-item .attn-body{flex:1;min-width:0}
+.attn-item .attn-title{font-weight:600;font-size:0.72rem}
+.attn-item .attn-sub{font-size:0.65rem;color:var(--text-dim);margin-top:2px}
+.attn-blocker{background:var(--red-bg);border:1px solid rgba(239,68,68,0.15)}
+.attn-blocker .attn-icon{background:rgba(239,68,68,0.15);color:var(--red)}
+.attn-blocker .attn-title{color:var(--red)}
+.attn-review{background:var(--purple-bg);border:1px solid rgba(139,92,246,0.15)}
+.attn-review .attn-icon{background:rgba(139,92,246,0.15);color:var(--purple)}
+.attn-review .attn-title{color:var(--purple)}
+.attn-paused{background:var(--amber-bg);border:1px solid rgba(245,158,11,0.15)}
+.attn-paused .attn-icon{background:rgba(245,158,11,0.15);color:var(--amber)}
+.attn-paused .attn-title{color:var(--amber)}
+.attn-unread{background:var(--blue-bg);border:1px solid rgba(59,130,246,0.15)}
+.attn-unread .attn-icon{background:rgba(59,130,246,0.15);color:var(--blue)}
+.attn-unread .attn-title{color:var(--blue)}
+.attn-task{background:rgba(6,182,212,0.04);border:1px solid rgba(6,182,212,0.12)}
+.attn-task .attn-icon{background:rgba(6,182,212,0.12);color:var(--cyan)}
+.attn-task .attn-title{color:var(--cyan)}
+
+/* Controls panel */
+.ctrl{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.ctrl-input{background:var(--bg);border:1px solid var(--panel-border);border-radius:5px;color:var(--text);padding:5px 8px;font-family:'JetBrains Mono',monospace;font-size:0.7rem;outline:none}
+.ctrl-input:focus{border-color:var(--blue)}
+.ctrl-select{background:var(--bg);border:1px solid var(--panel-border);border-radius:5px;color:var(--text);padding:5px 8px;font-family:inherit;font-size:0.7rem}
+.ctrl-btn{background:#1e293b;border:1px solid var(--panel-border);border-radius:5px;color:var(--text);padding:5px 12px;cursor:pointer;font-family:inherit;font-size:0.68rem;font-weight:600;transition:all 0.15s}
+.ctrl-btn:hover{background:#2d3748;border-color:var(--blue)}
+.ctrl-btn.primary{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.25);color:var(--green)}
+.ctrl-btn.primary:hover{background:rgba(16,185,129,0.2)}
+.ctrl-btn.danger{color:var(--red);border-color:rgba(239,68,68,0.2)}
+.ctrl-btn.danger:hover{background:var(--red-bg)}
+.ctrl-btn.bulk{background:transparent;border-color:var(--panel-border);color:var(--text-dim);font-size:0.62rem}
+.ctrl-label{font-size:0.62rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;display:block}
+.ctrl-section{margin-bottom:10px}
+.result-msg{padding:6px 10px;border-radius:5px;font-size:0.7rem;display:none;margin-top:6px;font-family:'JetBrains Mono',monospace}
+.result-ok{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:var(--green);display:block}
+.result-err{background:var(--red-bg);border:1px solid rgba(239,68,68,0.2);color:var(--red);display:block}
+
+/* Git info */
+.git-info{font-size:0.62rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace}
+.git-branch{color:var(--green);font-weight:600}
+
+/* Conflict warning */
+.conflict-warning{background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:6px;padding:8px 10px;margin-bottom:6px;color:var(--amber);font-size:0.7rem}
+
+/* Empty state */
+.empty{color:var(--text-dim);font-style:italic;padding:12px;font-size:0.72rem}
+.msg-content{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.timestamp{color:var(--text-dim);font-size:0.65rem;font-family:'JetBrains Mono',monospace}
+
+/* Number counter animation */
+@keyframes count-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.stat-value{animation:count-in 0.4s ease-out}
+
+/* Clickable stat cards */
+.stat-card.clickable,.stat-card-viz.clickable{cursor:pointer}
+.stat-card.clickable:hover{background:var(--panel-hover);box-shadow:inset 0 0 0 1px rgba(59,130,246,0.2)}
+.stat-card-viz.clickable:hover{background:var(--panel-hover);box-shadow:inset 0 0 0 1px rgba(59,130,246,0.2)}
+
+/* Clickable peer cards */
+.peer-info.clickable{cursor:pointer}
+.peer-card:hover .peer-info.clickable{color:var(--text-bright)}
+
+/* Modal overlay */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.active{display:flex}
+.modal{background:var(--panel);border:1px solid var(--panel-border);border-radius:12px;width:720px;max-width:90vw;max-height:80vh;overflow-y:auto;padding:24px;box-shadow:0 24px 48px rgba(0,0,0,0.5)}
+.modal::-webkit-scrollbar{width:4px}
+.modal::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-size:1rem;font-weight:700;color:var(--text-bright);display:flex;align-items:center;gap:8px}
+.modal-close{background:transparent;border:1px solid var(--panel-border);border-radius:6px;color:var(--text-dim);padding:4px 10px;cursor:pointer;font-size:0.8rem;transition:all 0.15s}
+.modal-close:hover{border-color:var(--red);color:var(--red)}
+.modal-section{margin-bottom:16px}
+.modal-section-title{font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--panel-border)}
+.modal-kv{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;font-size:0.75rem;margin-bottom:8px}
+.modal-kv dt{color:var(--text-dim);font-weight:600}
+.modal-kv dd{color:var(--text-bright);font-family:'JetBrains Mono',monospace;font-size:0.7rem}
+.modal-msg{background:var(--bg);border:1px solid var(--panel-border);border-radius:6px;padding:8px 10px;margin-bottom:4px;font-size:0.72rem}
+.modal-msg .msg-head{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.modal-msg .msg-head .from{font-weight:600;color:var(--text-bright)}
+.modal-msg .msg-head .to{color:var(--text-dim)}
+.modal-msg .msg-body{color:var(--text);word-break:break-word}
+.modal-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.modal-actions .ctrl-btn{font-size:0.7rem;padding:5px 14px}
+.modal-empty{color:var(--text-dim);font-style:italic;font-size:0.72rem;padding:8px}
+</style>
+</head>
+<body>
+
+<div id="offline-banner" style="display:none;background:rgba(239,68,68,0.15);border-bottom:2px solid var(--red);padding:8px 20px;text-align:center;color:var(--red);font-weight:700;font-size:0.8rem">BROKER OFFLINE — Dashboard will reconnect automatically</div>
+
+<div class="topbar">
+  <div class="logo"><div class="dot"></div><h1>Area10 Command Center</h1></div>
+  <div class="subtitle" id="topbar-subtitle">Loading...</div>
+</div>
+
+<div class="grid">
+  <!-- ROW 1: Stats strip -->
+  <div class="stat-strip">
+    <div class="stat-card clickable" id="stat-peers" title="View Agents">
+      <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      <div class="stat-info"><div class="stat-value" id="sv-active-count">0</div><div class="stat-label">Active Peers</div></div>
+    </div>
+    <div class="stat-card clickable" id="stat-messages" title="View Messages">
+      <div class="stat-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+      <div class="stat-info"><div class="stat-value" id="sv-total-messages">0</div><div class="stat-label">Messages</div></div>
+    </div>
+    <div class="stat-card clickable" id="stat-unread" title="View Unread Messages">
+      <div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <div class="stat-info"><div class="stat-value" id="sv-unread-messages">0</div><div class="stat-label">Unread</div></div>
+    </div>
+    <!-- Task donut chart card -->
+    <div class="stat-card-viz clickable" id="stat-donut" title="View Tasks">
+      <div class="donut-wrap">
+        <svg width="56" height="56" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="#1e293b" stroke-width="3.5"/>
+          <circle id="donut-completed" cx="18" cy="18" r="14" fill="none" stroke="var(--green)" stroke-width="3.5" stroke-dasharray="0 87.96" stroke-linecap="round"/>
+          <circle id="donut-inprogress" cx="18" cy="18" r="14" fill="none" stroke="var(--amber)" stroke-width="3.5" stroke-dasharray="0 87.96" stroke-linecap="round"/>
+          <circle id="donut-pending" cx="18" cy="18" r="14" fill="none" stroke="var(--blue)" stroke-width="3.5" stroke-dasharray="0 87.96" stroke-linecap="round"/>
+        </svg>
+        <div class="donut-center" id="donut-total">0</div>
+      </div>
+      <div class="donut-legend">
+        <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--green)"></div><span id="legend-completed">0 done</span></div>
+        <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--amber)"></div><span id="legend-inprogress">0 active</span></div>
+        <div class="donut-legend-item"><div class="donut-legend-dot" style="background:var(--blue)"></div><span id="legend-pending">0 queue</span></div>
+      </div>
+    </div>
+    <!-- Sparkline + Runs card -->
+    <div class="stat-card-viz clickable" id="stat-runs" title="View Runs">
+      <div class="sparkline-wrap">
+        <div class="sparkline-label">Activity (24pt)</div>
+        <svg id="sparkline-svg" width="120" height="32" viewBox="0 0 120 32">
+          <defs><linearGradient id="spark-grad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--cyan)" stop-opacity="0.3"/><stop offset="100%" stop-color="var(--cyan)" stop-opacity="0"/></linearGradient></defs>
+          <path id="sparkline-area" fill="url(#spark-grad)" d="M0,32 L120,32Z"/>
+          <polyline id="sparkline-line" fill="none" stroke="var(--cyan)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="0,30"/>
+        </svg>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="stat-info" style="text-align:center"><div class="stat-value" id="sv-active-runs" style="font-size:1.2rem">0</div><div class="stat-label">Runs</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2-3, COL 1-2: Peers (large panel) -->
+  <div class="panel panel-peers" id="agents-panel" style="grid-row:span 2">
+    <div class="panel-header"><span class="panel-title">Agents</span></div>
+    <div id="peers-container"><p class="empty">Loading...</p></div>
+  </div>
+
+  <!-- ROW 2, COL 3: Attention -->
+  <div class="panel" style="overflow-y:auto">
+    <div class="panel-header"><span class="panel-title">Needs Attention</span><span class="panel-count" id="attention-count">0</span></div>
+    <div id="attention-container"><p class="empty">Loading...</p></div>
+  </div>
+
+  <!-- ROW 2, COL 4: Controls -->
+  <div class="panel" style="grid-row:span 2;overflow-y:auto">
+    <div class="panel-header"><span class="panel-title">Controls</span></div>
+    <div class="ctrl-section">
+      <label class="ctrl-label">Launch Sessions</label>
+      <div class="ctrl">
+        <button class="ctrl-btn primary" onclick="spawnPeer('architect')" style="flex:1">+ Architect</button>
+        <button class="ctrl-btn primary" onclick="spawnPeer('worker')" style="flex:1">+ Worker</button>
+      </div>
+      <div class="ctrl">
+        <input id="spawn-id" class="ctrl-input" style="flex:1" placeholder="Custom ID (optional)">
+        <input id="spawn-dir" class="ctrl-input" style="flex:1" placeholder="Working dir (optional)">
+      </div>
+    </div>
+    <div class="ctrl-section">
+      <label class="ctrl-label">Agent</label>
+      <div class="ctrl">
+        <select id="cmd-peer" class="ctrl-select" style="width:100%"></select>
+      </div>
+      <div class="ctrl">
+        <button class="ctrl-btn" onclick="cmdPost('/pause',JSON.stringify({peer_id:g('cmd-peer')}))">Pause</button>
+        <button class="ctrl-btn primary" onclick="cmdPost('/resume',JSON.stringify({peer_id:g('cmd-peer')}))">Resume</button>
+        <button class="ctrl-btn" onclick="cmdPost('/ping',JSON.stringify({peer_id:g('cmd-peer')}))">Ping</button>
+        <button class="ctrl-btn danger" onclick="confirmAction('Kill '+g('cmd-peer')+'?','/kill-peer',{peer_id:g('cmd-peer')})">Kill</button>
+      </div>
+      <div class="ctrl" style="margin-top:4px">
+        <input id="cmd-poll" class="ctrl-input" type="number" value="10000" style="width:70px">
+        <button class="ctrl-btn" onclick="cmdPost('/config',JSON.stringify({peer_id:g('cmd-peer'),poll_interval_ms:+g('cmd-poll')}))">Poll</button>
+        <input id="cmd-budget" class="ctrl-input" type="number" placeholder="budget" style="width:70px">
+        <button class="ctrl-btn" onclick="cmdPost('/budget',JSON.stringify({peer_id:g('cmd-peer'),token_budget:+g('cmd-budget')}))">Budget</button>
+      </div>
+      <div class="ctrl" style="margin-top:4px">
+        <button class="ctrl-btn bulk" onclick="cmdPost('/pause-all',JSON.stringify({_:1}))">Pause All</button>
+        <button class="ctrl-btn bulk" onclick="cmdPost('/resume-all',JSON.stringify({_:1}))">Resume All</button>
+        <button class="ctrl-btn bulk" onclick="cmdPost('/ping-all',JSON.stringify({_:1}))">Ping All</button>
+      </div>
+    </div>
+    <div class="ctrl-section">
+      <label class="ctrl-label">Message</label>
+      <div class="ctrl">
+        <select id="cmd-cat" class="ctrl-select"><option>alert</option><option>status_update</option><option>question</option><option>finding</option><option>blocker</option><option>error</option></select>
+      </div>
+      <div class="ctrl">
+        <input id="cmd-msg" class="ctrl-input" style="flex:1" placeholder="Content...">
+        <button class="ctrl-btn primary" onclick="cmdPost('/send',JSON.stringify({sender_id:'command-center',recipient_id:g('cmd-peer'),category:g('cmd-cat'),content:g('cmd-msg')}))">Send</button>
+      </div>
+    </div>
+    <div class="ctrl-section">
+      <label class="ctrl-label">Create Task</label>
+      <div class="ctrl"><input id="task-title" class="ctrl-input" style="flex:1" placeholder="Title..."></div>
+      <div class="ctrl">
+        <select id="task-pri" class="ctrl-select"><option>medium</option><option>high</option><option>low</option></select>
+        <input id="task-blocked" class="ctrl-input" style="width:60px" placeholder="deps">
+        <input id="task-run" class="ctrl-input" style="width:60px" placeholder="run">
+        <button class="ctrl-btn primary" onclick="createTask()">Create</button>
+      </div>
+    </div>
+    <div class="ctrl-section">
+      <label class="ctrl-label">Memory</label>
+      <div class="ctrl">
+        <input id="mem-key" class="ctrl-input" style="width:80px" placeholder="key">
+        <input id="mem-val" class="ctrl-input" style="flex:1" placeholder="value">
+      </div>
+      <div class="ctrl">
+        <select id="mem-type" class="ctrl-select"><option>fact</option><option>decision</option><option>constraint</option><option>artifact</option></select>
+        <button class="ctrl-btn primary" onclick="cmdPost('/memory',JSON.stringify({key:g('mem-key'),value:g('mem-val'),peer_id:'command-center',type:g('mem-type'),confidence:'high'}))">Set</button>
+      </div>
+    </div>
+    <div class="ctrl-section">
+      <label class="ctrl-label">Run</label>
+      <div class="ctrl">
+        <input id="run-id" class="ctrl-input" style="width:70px" placeholder="id">
+        <input id="run-name" class="ctrl-input" style="flex:1" placeholder="name">
+        <button class="ctrl-btn primary" onclick="cmdPost('/runs',JSON.stringify({id:g('run-id'),name:g('run-name'),goal:'',created_by:'command-center'}))">Create</button>
+      </div>
+    </div>
+    <div id="cmd-result" class="result-msg"></div>
+  </div>
+
+  <!-- ROW 3, COL 3: Tasks -->
+  <div class="panel" id="tasks-panel">
+    <div class="panel-header"><span class="panel-title">Tasks</span><span class="panel-count" id="tasks-count">0</span></div>
+    <div id="tasks-container"><p class="empty">Loading...</p></div>
+  </div>
+
+</div>
+
+<!-- Modal overlay -->
+<div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title-text"></div>
+      <button class="modal-close" onclick="closeModal()">ESC</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   Area10 Command Center — Client-Side Dashboard
+   All data fetched from /dashboard/data, no server-side templating.
+   ========================================================================= */
+
+var AUTH_TOKEN = '';
+var CIRC = 2 * Math.PI * 14; // 87.96 circumference for donut r=14
+var lastData = null;
+
+// ---- Utilities ----
+
+function g(id) { return document.getElementById(id).value; }
+
+function esc(s) {
+  if (!s) return '';
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function fmtTime(ts) {
+  if (!ts) return '\u2014';
+  var d = new Date(ts * 1000);
+  return d.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+}
+
+function fmtAgo(ts) {
+  if (!ts) return '\u2014';
+  var s = Math.floor(Date.now() / 1000 - ts);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  return Math.floor(s / 3600) + 'h ago';
+}
+
+function fmtSecondsAgo(sec) {
+  if (sec == null) return '\u2014';
+  var s = Math.round(sec);
+  if (s < 60) return s + 's ago';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  return Math.floor(s / 3600) + 'h ago';
+}
+
+function catBadge(c) {
+  var cls = 'badge-cat';
+  if (c === 'blocker') cls = 'badge-blocker';
+  else if (c === 'error') cls = 'badge-blocker';
+  else if (c === 'review_request') cls = 'badge-review';
+  else if (c === 'alert') cls = 'badge-paused';
+  return '<span class="badge ' + cls + '">' + esc(c) + '</span>';
+}
+
+// ---- Auth token fetch (once on load) ----
+
+function fetchToken() {
+  return fetch('/dashboard/token')
+    .then(function(r) { return r.json(); })
+    .then(function(d) { AUTH_TOKEN = d.token || ''; })
+    .catch(function() { AUTH_TOKEN = ''; });
+}
+
+// ---- Command helpers ----
+
+function cmdPost(path, body) {
+  var r = document.getElementById('cmd-result');
+  r.className = 'result-msg'; r.textContent = '...'; r.style.display = 'block';
+  fetch(path, {method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AUTH_TOKEN}, body: body})
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    r.textContent = JSON.stringify(data, null, 1);
+    r.className = (data.ok || data.peers) ? 'result-msg result-ok' : 'result-msg result-err';
+    setTimeout(function() { r.style.display = 'none'; }, 4000);
+    refreshDashboard();
+  })
+  .catch(function(e) { r.textContent = 'Error: ' + e; r.className = 'result-msg result-err'; });
+}
+
+function confirmAction(msg, path, body) {
+  if (confirm(msg)) { cmdPost(path, JSON.stringify(body)); }
+}
+
+function spawnPeer(role) {
+  var id = document.getElementById('spawn-id').value.trim();
+  var dir = document.getElementById('spawn-dir').value.trim();
+  var b = {role: role};
+  if (id) b.peer_id = id;
+  if (dir) b.working_dir = dir;
+  cmdPost('/spawn', JSON.stringify(b));
+  document.getElementById('spawn-id').value = '';
+}
+
+function createTask() {
+  var b = g('task-blocked').trim();
+  var blocked = b ? b.split(',').map(Number) : [];
+  cmdPost('/tasks', JSON.stringify({title: g('task-title'), priority: g('task-pri'), created_by: 'command-center', blocked_by: blocked, run_id: g('task-run')}));
+}
+
+// ---- Animate stat numbers ----
+
+function animateValue(el, newVal) {
+  var cur = parseInt(el.textContent) || 0;
+  var nv = parseInt(newVal) || 0;
+  if (cur === nv) return;
+  var diff = nv - cur;
+  var steps = Math.min(Math.abs(diff), 12);
+  var stepVal = diff / steps;
+  var i = 0;
+  var iv = setInterval(function() {
+    i++;
+    if (i >= steps) { el.textContent = nv; clearInterval(iv); return; }
+    el.textContent = Math.round(cur + stepVal * i);
+  }, 30);
+}
+
+// ---- Donut chart ----
+
+function updateDonut(completed, inprogress, pending) {
+  var total = completed + inprogress + pending;
+  if (total === 0) total = 1;
+  var cFrac = completed / total, iFrac = inprogress / total, pFrac = pending / total;
+  var cLen = cFrac * CIRC, iLen = iFrac * CIRC, pLen = pFrac * CIRC;
+  var iOff = cLen, pOff = cLen + iLen;
+  var ec = document.getElementById('donut-completed');
+  var ei = document.getElementById('donut-inprogress');
+  var ep = document.getElementById('donut-pending');
+  ec.setAttribute('stroke-dasharray', cLen + ' ' + CIRC); ec.setAttribute('stroke-dashoffset', '0');
+  ei.setAttribute('stroke-dasharray', iLen + ' ' + CIRC); ei.setAttribute('stroke-dashoffset', '-' + iOff);
+  ep.setAttribute('stroke-dasharray', pLen + ' ' + CIRC); ep.setAttribute('stroke-dashoffset', '-' + pOff);
+  document.getElementById('donut-total').textContent = completed + inprogress + pending;
+  document.getElementById('legend-completed').textContent = completed + ' done';
+  document.getElementById('legend-inprogress').textContent = inprogress + ' active';
+  document.getElementById('legend-pending').textContent = pending + ' queue';
+}
+
+// ---- Sparkline ----
+
+function updateSparkline(points) {
+  if (!points || !points.length) return;
+  var max = Math.max.apply(null, points);
+  if (max === 0) max = 1;
+  var w = 120, h = 32, n = points.length;
+  var coords = [];
+  for (var i = 0; i < n; i++) {
+    var x = Math.round((i / (n - 1 || 1)) * w);
+    var y = Math.round(h - (points[i] / max) * (h - 4) - 2);
+    coords.push(x + ',' + y);
+  }
+  var polyStr = coords.join(' ');
+  document.getElementById('sparkline-line').setAttribute('points', polyStr);
+  var areaD = 'M0,' + h + ' L' + coords.join(' L') + ' L' + w + ',' + h + 'Z';
+  document.getElementById('sparkline-area').setAttribute('d', areaD);
+}
+
+// ---- Render peers panel ----
+
+function renderPeers(peers) {
+  var container = document.getElementById('peers-container');
+  if (!peers || !peers.length) {
+    container.innerHTML = '<p class="empty">No agents connected.</p>';
+    return;
+  }
+
+  // Detect conflicts: peers with overlapping dirty files
+  var dirtyFileSets = {};
+  peers.forEach(function(p) {
+    if (p.git_dirty_files) {
+      dirtyFileSets[p.id] = new Set(p.git_dirty_files.split(',').map(function(f) { return f.trim(); }).filter(Boolean));
+    }
+  });
+
+  var html = '';
+  peers.forEach(function(p) {
+    var pidEsc = esc(p.id);
+    var roleCls = p.role === 'architect' ? 'arch' : 'work';
+    var initials = p.id.substring(0, 2).toUpperCase();
+
+    // Status badge
+    var statusBadge = '';
+    if (p.paused) {
+      statusBadge = '<span class="badge badge-paused">PAUSED</span>';
+    } else if (p.status === 'dead') {
+      statusBadge = '<span class="badge badge-dead">DEAD</span>';
+    } else if (p.seconds_ago > 20) {
+      statusBadge = '<span class="badge badge-stuck">STUCK</span>';
+    } else {
+      statusBadge = '<span class="badge badge-active">LIVE</span>';
+    }
+
+    // Git meta
+    var gitMeta = '';
+    if (p.git_branch) {
+      var dirtyCount = dirtyFileSets[p.id] ? dirtyFileSets[p.id].size : 0;
+      var dirtyText = dirtyCount > 0 ? ' +' + dirtyCount : '';
+      gitMeta = '<span class="git-branch">' + esc(p.git_branch) + '</span>' + dirtyText;
+    }
+
+    // Conflict detection
+    var hasConflict = false;
+    if (dirtyFileSets[p.id] && dirtyFileSets[p.id].size > 0) {
+      for (var otherId in dirtyFileSets) {
+        if (otherId !== p.id) {
+          dirtyFileSets[p.id].forEach(function(f) {
+            if (dirtyFileSets[otherId] && dirtyFileSets[otherId].has(f)) hasConflict = true;
+          });
+        }
+      }
+    }
+
+    // Budget ring
+    var budgetHtml = '';
+    if (p.token_budget && p.token_budget > 0) {
+      var pct = Math.min(150, (p.tokens_used / p.token_budget) * 100);
+      var displayPct = Math.min(100, Math.round(pct));
+      var ringColor = pct < 70 ? 'var(--green)' : (pct < 100 ? 'var(--amber)' : 'var(--red)');
+      var ringCirc = 2 * Math.PI * 10;
+      var ringDash = (Math.min(pct, 100) / 100) * ringCirc;
+      budgetHtml = '<div class="budget-ring" title="' + Math.round(pct) + '% budget used">' +
+        '<svg width="24" height="24" viewBox="0 0 24 24">' +
+        '<circle cx="12" cy="12" r="10" class="budget-ring-track"/>' +
+        '<circle cx="12" cy="12" r="10" class="budget-ring-fill" stroke="' + ringColor + '" stroke-dasharray="' + ringDash.toFixed(1) + ' ' + ringCirc.toFixed(1) + '" transform="rotate(-90 12 12)"/>' +
+        '<text x="12" y="12" class="budget-ring-text">' + displayPct + '</text>' +
+        '</svg></div>';
+    }
+
+    var conflictCls = hasConflict ? ' conflict' : '';
+    var pauseBtn = p.paused
+      ? '<button onclick="cmdPost(\'/resume\',JSON.stringify({peer_id:\'' + pidEsc + '\'}))">Resume</button>'
+      : '<button onclick="cmdPost(\'/pause\',JSON.stringify({peer_id:\'' + pidEsc + '\'}))">Pause</button>';
+    var killBtn = '<button class="kill" onclick="confirmAction(\'Kill ' + pidEsc + '?\',\'/kill-peer\',{peer_id:\'' + pidEsc + '\'})">Kill</button>';
+
+    html += '<div class="peer-card' + conflictCls + '">' +
+      '<div class="peer-avatar ' + roleCls + '">' + initials + '</div>' +
+      '<div class="peer-info clickable" onclick="showPeerDetail(\'' + pidEsc + '\')" title="Click for details">' +
+        '<div class="peer-name">' + pidEsc + ' ' + statusBadge + ' <span class="badge badge-' + esc(p.role) + '">' + esc(p.role) + '</span></div>' +
+        '<div class="peer-meta">' + gitMeta + ' <span>' + fmtSecondsAgo(p.seconds_ago) + '</span> ' + budgetHtml + '</div>' +
+        '<div style="font-size:0.65rem;color:var(--text-dim);margin-top:2px">' + esc(p.summary || '') + '</div>' +
+      '</div>' +
+      '<div class="peer-actions">' + pauseBtn + killBtn + '</div>' +
+    '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+// ---- Render attention panel ----
+
+function renderAttention(attention) {
+  var container = document.getElementById('attention-container');
+  var countEl = document.getElementById('attention-count');
+
+  if (!attention || !attention.length) {
+    container.innerHTML = '<p class="empty">All clear. Nothing needs your attention.</p>';
+    countEl.textContent = '0';
+    return;
+  }
+
+  countEl.textContent = attention.length;
+  var html = '';
+  attention.forEach(function(item) {
+    var typeCls = 'attn-' + item.type;
+    var icons = {blocker: '!', review: '?', paused: '||', unread: '@', task: 'T'};
+    var icon = icons[item.type] || '?';
+    var clickAttr = '';
+    if (item.type === 'blocker' || item.type === 'review' || item.type === 'paused') {
+      if (item.peer_id) clickAttr = ' onclick="showPeerDetail(\'' + esc(item.peer_id) + '\')" style="cursor:pointer"';
+    } else if (item.type === 'unread') {
+      clickAttr = ' onclick="showMessages()" style="cursor:pointer"';
+    }
+    var actionBtn = '';
+    if (item.action === 'resume' && item.peer_id) {
+      actionBtn = '<button class="ctrl-btn primary" style="flex-shrink:0;font-size:0.62rem;padding:3px 10px" onclick="event.stopPropagation();cmdPost(\'/resume\',JSON.stringify({peer_id:\'' + esc(item.peer_id) + '\'}))">Resume</button>';
+    }
+    html += '<div class="attn-item ' + typeCls + '"' + clickAttr + '>' +
+      '<div class="attn-icon">' + icon + '</div>' +
+      '<div class="attn-body">' +
+        '<div class="attn-title">' + esc(item.title) + '</div>' +
+        '<div class="attn-sub">' + esc(item.detail || '') + '</div>' +
+      '</div>' +
+      actionBtn +
+    '</div>';
+  });
+  container.innerHTML = html;
+}
+
+// ---- Render tasks panel ----
+
+function renderTasks(data) {
+  var container = document.getElementById('tasks-container');
+  var countEl = document.getElementById('tasks-count');
+  countEl.textContent = data.total_tasks || 0;
+
+  if (!data.tasks || !data.tasks.length) {
+    container.innerHTML = '<p class="empty">No tasks.</p>';
+    return;
+  }
+
+  var html = '<table class="ptable"><tr><th></th><th>Task</th><th>Status</th><th>Pri</th><th>Agent</th></tr>';
+  data.tasks.forEach(function(t) {
+    var statusCls = {pending: 'badge-cat', in_progress: 'badge-active', completed: 'badge-dead'}[t.status] || 'badge-cat';
+    var priColor = {high: 'var(--red)', medium: 'var(--amber)', low: 'var(--text-dim)'}[t.priority] || '';
+    html += '<tr>' +
+      '<td style="color:var(--text-dim)">#' + t.id + '</td>' +
+      '<td>' + esc((t.title || '').substring(0, 40)) + '</td>' +
+      '<td><span class="badge ' + statusCls + '">' + esc((t.status || '').substring(0, 4)) + '</span></td>' +
+      '<td style="color:' + priColor + '">' + esc((t.priority || '').substring(0, 3)) + '</td>' +
+      '<td>' + esc((t.assigned_to || '').substring(0, 8)) + '</td>' +
+    '</tr>';
+  });
+  html += '</table>';
+  container.innerHTML = html;
+}
+
+// ---- Update peer dropdown ----
+
+function updatePeerSelect(peers) {
+  var sel = document.getElementById('cmd-peer');
+  var cur = sel.value;
+  sel.innerHTML = '';
+  (peers || []).forEach(function(p) {
+    var o = document.createElement('option');
+    o.value = p.id;
+    o.textContent = p.id + ' (' + p.role + (p.paused ? ' PAUSED' : '') + ')';
+    sel.appendChild(o);
+  });
+  if (cur) sel.value = cur;
+}
+
+// ---- Full dashboard refresh ----
+
+var _brokerConnected = true;
+
+function refreshDashboard() {
+  fetch('/dashboard/data')
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function(d) {
+      if (!_brokerConnected) {
+        _brokerConnected = true;
+        document.getElementById('offline-banner').style.display = 'none';
+        document.querySelector('.dot').style.background = 'var(--green)';
+        document.querySelector('.dot').style.boxShadow = '0 0 8px var(--green)';
+      }
+      lastData = d;
+
+      // Stat numbers
+      animateValue(document.getElementById('sv-active-count'), d.active_count);
+      animateValue(document.getElementById('sv-total-messages'), d.total_messages);
+      animateValue(document.getElementById('sv-unread-messages'), d.unread_messages);
+      animateValue(document.getElementById('sv-active-runs'), d.active_runs);
+
+      // Topbar subtitle
+      var sub = document.getElementById('topbar-subtitle');
+      sub.textContent = d.timestamp + (d.escalation_count ? ' | ' + d.escalation_count + ' escalation(s)' : '');
+      sub.style.color = d.escalation_count ? 'var(--red)' : '';
+
+      // Donut
+      updateDonut(d.tasks_completed || 0, d.tasks_inprogress || 0, d.tasks_pending || 0);
+
+      // Sparkline
+      if (d.sparkline) updateSparkline(d.sparkline);
+
+      // Peers panel
+      renderPeers(d.peers);
+
+      // Attention panel
+      renderAttention(d.attention);
+
+      // Tasks panel
+      renderTasks(d);
+
+      // Peer dropdown
+      updatePeerSelect(d.peers);
+    })
+    .catch(function() {
+      _brokerConnected = false;
+      document.getElementById('offline-banner').style.display = 'block';
+      document.querySelector('.dot').style.background = 'var(--red)';
+      document.querySelector('.dot').style.boxShadow = '0 0 8px var(--red)';
+    });
+}
+
+// ---- Modal system ----
+
+function openModal(title, contentHtml) {
+  document.getElementById('modal-title-text').textContent = title;
+  document.getElementById('modal-body').innerHTML = contentHtml;
+  document.getElementById('modal-overlay').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+}
+
+function modalAction(el) {
+  var p = el.getAttribute('data-path');
+  var id = el.getAttribute('data-peer');
+  cmdPost(p, JSON.stringify({peer_id: id}));
+  closeModal();
+}
+
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+
+function scrollToPanel(id) {
+  var el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({behavior: 'smooth', block: 'start'});
+    el.style.boxShadow = 'inset 0 0 0 2px var(--blue)';
+    setTimeout(function() { el.style.boxShadow = ''; }, 1500);
+  }
+}
+
+// ---- Messages modal ----
+
+function showMessages() {
+  openModal('Recent Messages', '<p class="modal-empty">Loading...</p>');
+  fetch('/messages-all?limit=30', {headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}})
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    var msgs = d.messages || [];
+    if (!msgs.length) { document.getElementById('modal-body').innerHTML = '<p class="modal-empty">No messages yet.</p>'; return; }
+    var h = '';
+    msgs.forEach(function(m) {
+      h += '<div class="modal-msg"><div class="msg-head">' +
+        '<span class="from">' + esc(m.sender_id) + '</span>' +
+        '<span class="to"> &rarr; ' + esc(m.recipient_id) + '</span> ' +
+        catBadge(m.category) +
+        ' <span class="timestamp">' + fmtTime(m.created_at) + '</span>' +
+        '</div><div class="msg-body">' + esc((m.content || '').substring(0, 300)) + '</div></div>';
+    });
+    document.getElementById('modal-body').innerHTML = h;
+  })
+  .catch(function(e) { document.getElementById('modal-body').innerHTML = '<p class="modal-empty">Error: ' + esc(String(e)) + '</p>'; });
+}
+
+// ---- Runs modal ----
+
+function showRuns() {
+  openModal('Runs', '<p class="modal-empty">Loading...</p>');
+  fetch('/runs', {headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}})
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    var runs = d.runs || [];
+    if (!runs.length) { document.getElementById('modal-body').innerHTML = '<p class="modal-empty">No runs.</p>'; return; }
+    var h = '<table class="ptable"><tr><th>ID</th><th>Name</th><th>Status</th><th>Created</th></tr>';
+    runs.forEach(function(r) {
+      h += '<tr><td>' + esc(r.id) + '</td><td>' + esc(r.name) + '</td>' +
+        '<td><span class="badge ' + (r.status === 'active' ? 'badge-active' : 'badge-dead') + '">' + esc(r.status) + '</span></td>' +
+        '<td class="timestamp">' + fmtTime(r.created_at) + '</td></tr>';
+    });
+    h += '</table>';
+    document.getElementById('modal-body').innerHTML = h;
+  })
+  .catch(function(e) { document.getElementById('modal-body').innerHTML = '<p class="modal-empty">Error: ' + esc(String(e)) + '</p>'; });
+}
+
+// ---- Peer detail modal ----
+
+function showPeerDetail(peerId) {
+  openModal('Peer: ' + peerId, '<p class="modal-empty">Loading...</p>');
+  Promise.all([
+    fetch('/peer/' + encodeURIComponent(peerId), {headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}}).then(function(r) { return r.json(); }),
+    fetch('/messages-for/' + encodeURIComponent(peerId) + '?limit=15', {headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}}).then(function(r) { return r.json(); }),
+    fetch('/tasks?assigned_to=' + encodeURIComponent(peerId), {headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}}).then(function(r) { return r.json(); }),
+    fetch('/locks', {headers: {'Authorization': 'Bearer ' + AUTH_TOKEN}}).then(function(r) { return r.json(); })
+  ]).then(function(results) {
+    var p = results[0], msgs = results[1].messages || [], tasks = results[2].tasks || [], locks = results[3].locks || results[3] || [];
+    var peerLocks = locks.filter(function(l) { return l.peer_id === peerId; });
+    var h = '';
+
+    // Peer info section
+    var statusLabel = p.paused ? 'PAUSED' : (p.status === 'dead' ? 'DEAD' : 'ACTIVE');
+    var statusCls = p.paused ? 'badge-paused' : (p.status === 'dead' ? 'badge-dead' : 'badge-active');
+    h += '<div class="modal-section"><div class="modal-section-title">Peer Info</div>';
+    h += '<dl class="modal-kv">';
+    h += '<dt>ID</dt><dd>' + esc(p.id) + '</dd>';
+    h += '<dt>Role</dt><dd><span class="badge badge-' + esc(p.role) + '">' + esc(p.role) + '</span></dd>';
+    h += '<dt>Status</dt><dd><span class="badge ' + statusCls + '">' + statusLabel + '</span></dd>';
+    h += '<dt>Git Branch</dt><dd class="git-branch">' + esc(p.git_branch || '\u2014') + '</dd>';
+    h += '<dt>Last Heartbeat</dt><dd>' + fmtAgo(p.last_heartbeat) + '</dd>';
+    h += '<dt>PID</dt><dd>' + (p.pid || '\u2014') + '</dd>';
+    h += '<dt>Budget</dt><dd>' + (p.token_budget ? (p.tokens_used + ' / ' + p.token_budget) : '\u2014') + '</dd>';
+    h += '<dt>Tool Calls</dt><dd>' + (p.tool_calls_count || 0) + '</dd>';
+    h += '<dt>Errors</dt><dd>' + (p.errors_count || 0) + '</dd>';
+    h += '<dt>Rejections</dt><dd>' + (p.rejections_count || 0) + '</dd>';
+    h += '<dt>Stop Reason</dt><dd>' + esc(p.last_stop_reason || '\u2014') + '</dd>';
+    h += '<dt>Summary</dt><dd>' + esc(p.summary || '\u2014') + '</dd>';
+    h += '</dl></div>';
+
+    // Controls
+    var ep = esc(peerId);
+    h += '<div class="modal-section"><div class="modal-section-title">Controls</div><div class="modal-actions">';
+    if (p.paused) {
+      h += '<button class="ctrl-btn primary" onclick="modalAction(this)" data-path="/resume" data-peer="' + ep + '">Resume</button>';
+    } else {
+      h += '<button class="ctrl-btn" onclick="modalAction(this)" data-path="/pause" data-peer="' + ep + '">Pause</button>';
+    }
+    h += '<button class="ctrl-btn" onclick="modalAction(this)" data-path="/ping" data-peer="' + ep + '">Ping</button>';
+    h += '<button class="ctrl-btn danger" onclick="if(confirm(\'Kill ' + ep + '?\')){modalAction(this)}" data-path="/kill-peer" data-peer="' + ep + '">Kill</button>';
+    h += '</div></div>';
+
+    // Messages section
+    h += '<div class="modal-section"><div class="modal-section-title">Messages (' + msgs.length + ')</div>';
+    if (msgs.length) {
+      msgs.forEach(function(m) {
+        h += '<div class="modal-msg"><div class="msg-head">' +
+          '<span class="from">' + esc(m.sender_id) + '</span>' +
+          '<span class="to"> &rarr; ' + esc(m.recipient_id) + '</span> ' +
+          catBadge(m.category) +
+          ' <span class="timestamp">' + fmtTime(m.created_at) + '</span>' +
+          '</div><div class="msg-body">' + esc((m.content || '').substring(0, 300)) + '</div></div>';
+      });
+    } else { h += '<p class="modal-empty">No messages.</p>'; }
+    h += '</div>';
+
+    // Tasks section
+    h += '<div class="modal-section"><div class="modal-section-title">Tasks (' + tasks.length + ')</div>';
+    if (tasks.length) {
+      h += '<table class="ptable"><tr><th>#</th><th>Task</th><th>Status</th><th>Pri</th></tr>';
+      tasks.forEach(function(t) {
+        var sc = t.status === 'completed' ? 'badge-dead' : (t.status === 'in_progress' ? 'badge-active' : 'badge-cat');
+        h += '<tr><td>' + t.id + '</td><td>' + esc(t.title) + '</td>' +
+          '<td><span class="badge ' + sc + '">' + esc((t.status || '').substring(0, 4)) + '</span></td>' +
+          '<td>' + esc((t.priority || '').substring(0, 3)) + '</td></tr>';
+      });
+      h += '</table>';
+    } else { h += '<p class="modal-empty">No tasks assigned.</p>'; }
+    h += '</div>';
+
+    // Locks section
+    h += '<div class="modal-section"><div class="modal-section-title">File Locks (' + peerLocks.length + ')</div>';
+    if (peerLocks.length) {
+      h += '<table class="ptable"><tr><th>File</th><th>Locked</th></tr>';
+      peerLocks.forEach(function(l) {
+        h += '<tr><td style="font-family:JetBrains Mono,monospace;font-size:0.68rem">' + esc(l.file_path) + '</td>' +
+          '<td class="timestamp">' + fmtTime(l.locked_at) + '</td></tr>';
+      });
+      h += '</table>';
+    } else { h += '<p class="modal-empty">No locks held.</p>'; }
+    h += '</div>';
+
+    document.getElementById('modal-body').innerHTML = h;
+  }).catch(function(e) {
+    document.getElementById('modal-body').innerHTML = '<p class="modal-empty">Error loading peer details: ' + esc(String(e)) + '</p>';
+  });
+}
+
+// ---- Stat card click handlers ----
+
+document.getElementById('stat-peers').addEventListener('click', function() { scrollToPanel('agents-panel'); });
+document.getElementById('stat-messages').addEventListener('click', function() { showMessages(); });
+document.getElementById('stat-unread').addEventListener('click', function() { showMessages(); });
+document.getElementById('stat-donut').addEventListener('click', function() { scrollToPanel('tasks-panel'); });
+document.getElementById('stat-runs').addEventListener('click', function() { showRuns(); });
+
+// ---- Init ----
+
+fetchToken().then(function() {
+  refreshDashboard();
+  setInterval(refreshDashboard, 5000);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C2 Lattice — Command Center Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Inter',system-ui,sans-serif;background:#06080d;color:#e2e8f0;min-height:100vh}
+
+  .hero{
+    background:linear-gradient(160deg,#06080d 0%,#0c1222 30%,#1a103a 60%,#0c1222 100%);
+    padding:56px 48px 40px;text-align:center;position:relative;overflow:hidden;
+    border-bottom:1px solid rgba(99,102,241,0.15);
+  }
+  .hero::before{
+    content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+    background:radial-gradient(ellipse at 50% 0%,rgba(99,102,241,0.12) 0%,transparent 60%),
+               radial-gradient(ellipse at 20% 100%,rgba(52,211,153,0.06) 0%,transparent 40%),
+               radial-gradient(ellipse at 80% 100%,rgba(96,165,250,0.06) 0%,transparent 40%);
+  }
+  .hero *{position:relative}
+  .hero h1{
+    font-size:2.8rem;font-weight:800;letter-spacing:-0.04em;line-height:1.1;
+    background:linear-gradient(135deg,#a78bfa 0%,#60a5fa 40%,#34d399 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .hero .tagline{color:#94a3b8;font-size:1.1rem;margin-top:12px;font-weight:400}
+  .hero .version{
+    display:inline-block;background:rgba(99,102,241,0.12);color:#a78bfa;
+    padding:4px 14px;border-radius:20px;font-size:0.75rem;font-weight:700;
+    margin-top:14px;letter-spacing:0.05em;border:1px solid rgba(99,102,241,0.2);
+  }
+  .hero .stats-row{
+    display:flex;justify-content:center;gap:32px;margin-top:28px;flex-wrap:wrap;
+  }
+  .hero .stat{text-align:center}
+  .hero .stat-num{font-size:2rem;font-weight:800;color:#e2e8f0;font-family:'JetBrains Mono',monospace}
+  .hero .stat-label{font-size:0.7rem;color:#64748b;text-transform:uppercase;letter-spacing:0.1em;margin-top:2px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#111827}
+  @media(max-width:960px){.grid{grid-template-columns:1fr}}
+
+  .card{background:#0a0f1a;padding:28px 32px}
+  .card h2{
+    font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;
+    margin-bottom:16px;display:flex;align-items:center;gap:8px;
+  }
+  .card h2 .icon{font-size:1rem}
+  .c-purple h2{color:#a78bfa}
+  .c-blue h2{color:#60a5fa}
+  .c-green h2{color:#34d399}
+  .c-amber h2{color:#fbbf24}
+  .c-red h2{color:#f87171}
+  .c-cyan h2{color:#22d3ee}
+  .c-pink h2{color:#f472b6}
+  .c-indigo h2{color:#818cf8}
+
+  .tool-list{list-style:none;font-size:0.82rem}
+  .tool-list li{
+    padding:5px 0;border-bottom:1px solid rgba(30,41,59,0.5);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .tool-list li:last-child{border:none}
+  .tool-name{color:#e2e8f0;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:0.78rem}
+  .tool-desc{color:#64748b;font-size:0.72rem;text-align:right;max-width:55%}
+
+  .endpoint{
+    display:flex;gap:8px;align-items:center;padding:4px 0;
+    font-family:'JetBrains Mono',monospace;font-size:0.75rem;
+  }
+  .method{
+    display:inline-block;width:42px;text-align:center;font-weight:700;
+    border-radius:4px;padding:1px 0;font-size:0.65rem;
+  }
+  .method-get{background:rgba(52,211,153,0.15);color:#34d399}
+  .method-post{background:rgba(96,165,250,0.15);color:#60a5fa}
+  .ep-path{color:#94a3b8}
+  .ep-desc{color:#475588;font-family:'Inter',sans-serif;font-size:0.7rem;margin-left:auto}
+
+  .arch-box{
+    background:linear-gradient(135deg,rgba(99,102,241,0.06),rgba(52,211,153,0.04));
+    border:1px solid rgba(99,102,241,0.12);border-radius:10px;
+    padding:20px 24px;font-family:'JetBrains Mono',monospace;
+    font-size:0.72rem;line-height:1.7;color:#94a3b8;
+  }
+  .arch-box .highlight{color:#a78bfa;font-weight:600}
+  .arch-box .sub{color:#64748b}
+
+  .flow-item{
+    background:rgba(30,41,59,0.3);border:1px solid #1e293b;border-radius:8px;
+    padding:12px 16px;margin:6px 0;font-size:0.8rem;
+  }
+  .flow-item .label{color:#a78bfa;font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em}
+  .flow-item .desc{color:#94a3b8;margin-top:4px;font-size:0.78rem}
+
+  .badge{
+    display:inline-block;padding:2px 8px;border-radius:10px;
+    font-size:0.65rem;font-weight:700;letter-spacing:0.04em;
+  }
+  .badge-new{background:rgba(52,211,153,0.15);color:#34d399}
+
+  .footer{
+    text-align:center;padding:24px;color:#334155;font-size:0.75rem;
+    border-top:1px solid #111827;
+  }
+  .footer a{color:#64748b}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Area10 Command Center</h1>
+  <p class="tagline">Mission control for autonomous AI agent teams</p>
+  <div class="version">v4.1 &mdash; COMMAND CENTER</div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-num">20</div><div class="stat-label">MCP Tools</div></div>
+    <div class="stat"><div class="stat-num">0</div><div class="stat-label">Dependencies</div></div>
+    <div class="stat"><div class="stat-num">88</div><div class="stat-label">Tests</div></div>
+    <div class="stat"><div class="stat-num">7</div><div class="stat-label">Phases</div></div>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- MCP Tools: Discovery & Control -->
+  <div class="card c-purple">
+    <h2><span class="icon">&#x1F50D;</span> Discovery &amp; Control</h2>
+    <ul class="tool-list">
+      <li><span class="tool-name">list_peers</span><span class="tool-desc">Find all active sessions</span></li>
+      <li><span class="tool-name">view_dashboard</span><span class="tool-desc">Status board + dashboard URL</span></li>
+      <li><span class="tool-name">set_summary</span><span class="tool-desc">Set your status (200 chars)</span></li>
+      <li><span class="tool-name">broadcast</span><span class="tool-desc">Architect: message all peers</span></li>
+    </ul>
+  </div>
+
+  <!-- Messaging & Escalation -->
+  <div class="card c-blue">
+    <h2><span class="icon">&#x1F4E8;</span> Messaging &amp; Escalation</h2>
+    <ul class="tool-list">
+      <li><span class="tool-name">send_message</span><span class="tool-desc">7 categories incl. blocker/error</span></li>
+      <li><span class="tool-name">check_messages</span><span class="tool-desc">Read inbox (bg-polled too)</span></li>
+      <li><span class="tool-name">raise_blocker</span><span class="tool-desc badge-new">Auto-escalate to architect</span></li>
+      <li><span class="tool-name">request_review</span><span class="tool-desc badge-new">Ask architect for sign-off</span></li>
+    </ul>
+  </div>
+
+  <!-- Task DAGs -->
+  <div class="card c-green">
+    <h2><span class="icon">&#x2705;</span> Task DAGs</h2>
+    <ul class="tool-list">
+      <li><span class="tool-name">create_task</span><span class="tool-desc">With deps + run_id</span></li>
+      <li><span class="tool-name">list_tasks</span><span class="tool-desc">Filter by status, shows claimable</span></li>
+      <li><span class="tool-name">get_task</span><span class="tool-desc">Full detail + what it blocks</span></li>
+      <li><span class="tool-name">claim_task</span><span class="tool-desc">Budget-checked before claim</span></li>
+      <li><span class="tool-name">complete_task</span><span class="tool-desc">Requires artifacts, unblocks deps</span></li>
+    </ul>
+  </div>
+
+  <!-- File Locks & Memory -->
+  <div class="card c-amber">
+    <h2><span class="icon">&#x1F512;</span> Locks &amp; Versioned Memory</h2>
+    <ul class="tool-list">
+      <li><span class="tool-name">lock_file / unlock_file</span><span class="tool-desc">Prevent merge conflicts</span></li>
+      <li><span class="tool-name">list_locks</span><span class="tool-desc">Who's editing what</span></li>
+      <li><span class="tool-name">set_memory</span><span class="tool-desc badge-new">Typed + versioned + confidence</span></li>
+      <li><span class="tool-name">get_memory</span><span class="tool-desc badge-new">Filter by type, full history</span></li>
+    </ul>
+  </div>
+
+  <!-- Conversations -->
+  <div class="card c-pink">
+    <h2><span class="icon">&#x1F4AC;</span> Conversations &amp; Audit</h2>
+    <ul class="tool-list">
+      <li><span class="tool-name">log_conversation</span><span class="tool-desc">Record session turns</span></li>
+      <li><span class="tool-name">get_conversation</span><span class="tool-desc">Architect sees all, workers own</span></li>
+    </ul>
+    <div style="margin-top:12px">
+      <div class="flow-item">
+        <div class="label">Audit Trail</div>
+        <div class="desc">Every action logged to activity_log. 7-day auto-retention. Full conversation replay per peer.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="card c-indigo">
+    <h2><span class="icon">&#x1F3D7;</span> Architecture</h2>
+    <div class="arch-box">
+      <span class="highlight">Browser Command Center</span> (interactive)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;|<br>
+      <span class="highlight">Broker Daemon</span> (127.0.0.1:7899)<br>
+      &nbsp;&nbsp;&#x251C; Task DAGs <span class="sub">(dependency scheduling)</span><br>
+      &nbsp;&nbsp;&#x251C; Budget Enforcement <span class="sub">(per-agent caps)</span><br>
+      &nbsp;&nbsp;&#x251C; Git Awareness <span class="sub">(conflict prediction)</span><br>
+      &nbsp;&nbsp;&#x251C; Escalation Router <span class="sub">(blocker &#x2192; architect)</span><br>
+      &nbsp;&nbsp;&#x251C; Versioned Memory <span class="sub">(typed, history)</span><br>
+      &nbsp;&nbsp;&#x251C; Run Manager <span class="sub">(multi-feature isolation)</span><br>
+      &nbsp;&nbsp;&#x2514; File Locks + Timeline<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;|<br>
+      <span class="highlight">MCP Servers</span> (one per session, stdio)<br>
+      &nbsp;&nbsp;&#x251C; Architect <span class="sub">(privileged)</span><br>
+      &nbsp;&nbsp;&#x251C; Worker A <span class="sub">(autonomous)</span><br>
+      &nbsp;&nbsp;&#x2514; Worker B <span class="sub">(autonomous)</span>
+    </div>
+  </div>
+
+  <!-- Command Center Features -->
+  <div class="card c-cyan">
+    <h2><span class="icon">&#x1F3AE;</span> Command Center (Browser)</h2>
+    <ul class="tool-list">
+      <li><span class="tool-name">Pause / Resume</span><span class="tool-desc">Freeze any agent instantly</span></li>
+      <li><span class="tool-name">Ping / Ping All</span><span class="tool-desc">Health check + stuck detection</span></li>
+      <li><span class="tool-name">Set Poll Interval</span><span class="tool-desc">1s&#x2013;60s per agent</span></li>
+      <li><span class="tool-name">Set Budget</span><span class="tool-desc">Token caps + usage bars</span></li>
+      <li><span class="tool-name">Send Message</span><span class="tool-desc">Direct from browser</span></li>
+      <li><span class="tool-name">Tabbed Views</span><span class="tool-desc">Peers, Tasks, Runs, Memory, Activity</span></li>
+      <li><span class="tool-name">Kill / Remove Agent</span><span class="tool-desc badge-new">One-click with confirm dialog</span></li>
+      <li><span class="tool-name">Create Task / Run / Memory</span><span class="tool-desc badge-new">Inline forms, no terminal</span></li>
+    </ul>
+  </div>
+
+  <!-- Telemetry & Resilience -->
+  <div class="card c-amber">
+    <h2><span class="icon">&#x1F4C8;</span> Telemetry &amp; Resilience</h2>
+    <ul class="tool-list">
+      <li><span class="tool-name">Structured activity log</span><span class="tool-desc badge-new">JSON details, not free text</span></li>
+      <li><span class="tool-name">Per-agent metrics</span><span class="tool-desc badge-new">tool_calls, errors, rejections</span></li>
+      <li><span class="tool-name">Stop reason taxonomy</span><span class="tool-desc badge-new">9 named stop reasons</span></li>
+      <li><span class="tool-name">Denial tracking</span><span class="tool-desc badge-new">Auto-pause after 20 rejections</span></li>
+      <li><span class="tool-name">Auto task reassignment</span><span class="tool-desc badge-new">Dead peer tasks go back to pending</span></li>
+      <li><span class="tool-name">Tool risk metadata</span><span class="tool-desc badge-new">read_only + low/medium/high risk</span></li>
+    </ul>
+  </div>
+
+  <!-- Security & Git -->
+  <div class="card c-red">
+    <h2><span class="icon">&#x1F6E1;</span> Security &amp; Git Awareness</h2>
+    <ul class="tool-list">
+      <li><span class="tool-name">HMAC token auth</span><span class="tool-desc badge-new">Signed per-peer tokens, validated every request</span></li>
+      <li><span class="tool-name">Role-based access</span><span class="tool-desc badge-new">System/architect/worker permission tiers</span></li>
+      <li><span class="tool-name">127.0.0.1 only</span><span class="tool-desc">No network exposure</span></li>
+      <li><span class="tool-name">Content filtering</span><span class="tool-desc">NFKC + tool_use + base64 blocks</span></li>
+      <li><span class="tool-name">Rate limiting</span><span class="tool-desc">10 msg/min per peer</span></li>
+      <li><span class="tool-name">Git branch tracking</span><span class="tool-desc badge-new">Per-agent, auto-refreshed</span></li>
+      <li><span class="tool-name">Conflict prediction</span><span class="tool-desc badge-new">Overlapping dirty files alert</span></li>
+      <li><span class="tool-name">PID liveness</span><span class="tool-desc">Dead sessions auto-cleaned</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="footer">
+  C2 Lattice &mdash; Python stdlib only, zero pip dependencies &mdash;
+  <a href="https://github.com/GlobalCan/c2-lattice">github.com/GlobalCan/c2-lattice</a>
+</div>
+
+</body>
+</html>

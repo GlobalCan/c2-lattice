@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Area10 Command Center — Setup Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#06080d;color:#c9d1d9;
+    max-width:860px;margin:0 auto;padding:40px 32px;line-height:1.7;
+  }
+
+  h1{
+    font-size:2.2rem;font-weight:800;letter-spacing:-0.03em;
+    background:linear-gradient(135deg,#a78bfa,#60a5fa,#34d399);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    margin-bottom:4px;
+  }
+  .subtitle{color:#64748b;font-size:0.9rem;margin-bottom:40px}
+  h2{
+    color:#a78bfa;font-size:1.15rem;font-weight:700;
+    margin:48px 0 16px;padding-bottom:8px;
+    border-bottom:1px solid rgba(99,102,241,0.15);
+    display:flex;align-items:center;gap:10px;
+  }
+  h2 .num{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:30px;height:30px;border-radius:50%;font-size:0.85rem;font-weight:800;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;flex-shrink:0;
+  }
+  h3{color:#60a5fa;font-size:0.95rem;font-weight:600;margin:24px 0 8px}
+  p{color:#94a3b8;margin:8px 0;font-size:0.88rem}
+
+  pre{
+    background:#0c1017;border:1px solid #1e293b;border-radius:10px;
+    padding:16px 20px;margin:12px 0;overflow-x:auto;
+    font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:#e2e8f0;
+    position:relative;line-height:1.6;
+  }
+  .copy-btn{
+    position:absolute;top:10px;right:10px;
+    background:#1e293b;border:1px solid #334155;color:#64748b;
+    padding:4px 12px;border-radius:6px;cursor:pointer;
+    font-family:'JetBrains Mono',monospace;font-size:0.7rem;font-weight:600;
+    transition:all 0.2s;
+  }
+  .copy-btn:hover{background:#334155;color:#e2e8f0;border-color:#475569}
+  .copy-btn.copied{background:rgba(52,211,153,0.15);color:#34d399;border-color:rgba(52,211,153,0.3)}
+
+  .callout{border-radius:10px;padding:16px 20px;margin:16px 0;font-size:0.84rem}
+  .callout-warn{background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.15);color:#fbbf24}
+  .callout-tip{background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.12);color:#34d399}
+  .callout-info{background:rgba(96,165,250,0.06);border:1px solid rgba(96,165,250,0.12);color:#60a5fa}
+  .callout strong{font-weight:700}
+
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:0.82rem}
+  th{text-align:left;color:#64748b;padding:8px 12px;border-bottom:2px solid #1e293b;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em}
+  td{padding:8px 12px;border-bottom:1px solid rgba(30,41,59,0.5);color:#94a3b8}
+  tr:hover td{background:rgba(30,41,59,0.3)}
+  td:first-child{font-family:'JetBrains Mono',monospace;color:#e2e8f0;font-weight:600;font-size:0.8rem}
+
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:0.65rem;font-weight:700}
+  .badge-new{background:rgba(52,211,153,0.15);color:#34d399}
+  .badge-arch{background:rgba(167,139,250,0.15);color:#a78bfa}
+
+  .section{margin-bottom:48px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:700px){.grid-2{grid-template-columns:1fr}}
+
+  .feature-card{
+    background:#0c1017;border:1px solid #1e293b;border-radius:10px;
+    padding:20px;
+  }
+  .feature-card h4{color:#e2e8f0;font-size:0.88rem;font-weight:700;margin-bottom:8px}
+  .feature-card p{font-size:0.8rem;margin:0;color:#64748b}
+
+  .footer{
+    text-align:center;padding:32px 0;color:#334155;font-size:0.75rem;
+    border-top:1px solid #111827;margin-top:48px;
+  }
+  .footer a{color:#64748b}
+</style>
+</head>
+<body>
+
+<h1>Area10 Command Center</h1>
+<p class="subtitle">Setup guide for the AI agent team coordination platform &mdash; v4.1</p>
+
+<!-- STEP 1 -->
+<div class="section">
+<h2><span class="num">1</span> Install</h2>
+<p>One command registers the MCP server globally for all Claude Code sessions.</p>
+<pre><button class="copy-btn" onclick="copyCmd(this)">Copy</button>python install.py</pre>
+
+<div class="callout callout-info">
+  <strong>What this does:</strong> Registers <code>c2-lattice</code> as a global MCP server in <code>~/.claude.json</code> via <code>claude mcp add --scope user</code>. No pip dependencies needed.
+</div>
+
+<p>To check installation status or uninstall:</p>
+<pre><button class="copy-btn" onclick="copyCmd(this)">Copy</button>python install.py --status    # check if installed
+python install.py --uninstall  # remove cleanly</pre>
+</div>
+
+<!-- STEP 2 -->
+<div class="section">
+<h2><span class="num">2</span> Start the Broker</h2>
+<p>The broker is the coordination hub. Start it in its own terminal &mdash; it runs until you close it.</p>
+<pre><button class="copy-btn" onclick="copyCmd(this)">Copy</button>cd /path/to/c2-lattice
+python broker.py</pre>
+
+<div class="callout callout-tip">
+  <strong>Auto-start:</strong> The MCP server will auto-start the broker if it's not running. But starting it manually gives you the stderr log output.
+</div>
+</div>
+
+<!-- STEP 3 -->
+<div class="section">
+<h2><span class="num">3</span> Open Claude Code Sessions</h2>
+<p>Each terminal gets its own session with a unique auto-generated ID.</p>
+
+<h3>Architect (you)</h3>
+<pre><button class="copy-btn" onclick="copyCmd(this)">Copy</button>$env:PEER_ROLE="architect"
+claude</pre>
+
+<h3>Workers (separate terminals)</h3>
+<pre><button class="copy-btn" onclick="copyCmd(this)">Copy</button>claude</pre>
+<p>Workers auto-register as <code>worker-xxxx</code> with a random suffix. Each terminal window must be a <strong>separate window</strong> (not tabs in the same terminal) to guarantee separate MCP processes.</p>
+
+<div class="callout callout-warn">
+  <strong>Important:</strong> Never create <code>~/.mcp.json</code> for c2-lattice. It overrides the global config and causes all sessions to share the same peer ID.
+</div>
+</div>
+
+<!-- STEP 4 -->
+<div class="section">
+<h2><span class="num">4</span> Open the Command Center</h2>
+<pre><button class="copy-btn" onclick="copyCmd(this)">Copy</button>http://127.0.0.1:7899/dashboard</pre>
+<p>The interactive dashboard where you control everything. Auto-refreshes every 10 seconds.</p>
+
+<div class="grid-2">
+  <div class="feature-card">
+    <h4>Pause / Resume Agents</h4>
+    <p>Freeze any agent instantly. They'll stop on next tool call and wait for resume.</p>
+  </div>
+  <div class="feature-card">
+    <h4>Send Messages</h4>
+    <p>Direct messages to any peer from the browser. 7 categories including blocker + error.</p>
+  </div>
+  <div class="feature-card">
+    <h4>Set Budgets</h4>
+    <p>Token caps per agent with visual budget bars. Prevents quota burn from runaway agents.</p>
+  </div>
+  <div class="feature-card">
+    <h4>Monitor Git State</h4>
+    <p>See each agent's branch, dirty files, and commit. Conflict warnings when files overlap.</p>
+  </div>
+  <div class="feature-card">
+    <h4>Ping Health Check</h4>
+    <p>Instant health status. Stuck detection when heartbeat is >20s old.</p>
+  </div>
+  <div class="feature-card">
+    <h4>Tabbed Views</h4>
+    <p>Peers, Messages, Tasks, Runs, Memory, Conversations, Activity &mdash; all in one place.</p>
+  </div>
+</div>
+</div>
+
+<!-- STEP 5 -->
+<div class="section">
+<h2><span class="num">5</span> Direct Your Team</h2>
+<p>Tell your architect session what to do. Example prompt:</p>
+<pre style="color:#94a3b8;border-color:#1e293b">You are the architect of a team. Use C2 Lattice MCP tools to:
+
+1. Create a run: set_memory with key="current-run", value="feature-auth"
+2. Create tasks with dependencies (blocked_by)
+3. Monitor workers via list_peers, check_messages
+4. When workers raise_blocker, respond with guidance
+5. When workers request_review, approve or send feedback
+
+Your peer ID is shown in view_dashboard. Workers will claim
+tasks, complete them with artifacts, and check messages for
+your feedback. Control everything from the browser dashboard
+at http://127.0.0.1:7899/dashboard</pre>
+</div>
+
+<!-- ALL 20 TOOLS -->
+<div class="section">
+<h2><span class="num">6</span> All 20 MCP Tools</h2>
+
+<table>
+<tr><th>Tool</th><th>Category</th><th>Description</th></tr>
+<tr><td>list_peers</td><td>Discovery</td><td>Find active sessions (all / same_dir / same_repo)</td></tr>
+<tr><td>view_dashboard</td><td>Discovery</td><td>Status board + browser dashboard URL</td></tr>
+<tr><td>set_summary</td><td>Discovery</td><td>Set your status visible to all peers</td></tr>
+<tr><td>send_message</td><td>Messaging</td><td>7 categories: status_update, question, finding, alert, blocker, error, review_request</td></tr>
+<tr><td>check_messages</td><td>Messaging</td><td>Read inbox (also background-polled)</td></tr>
+<tr><td>broadcast</td><td>Messaging</td><td>Architect-only: message all peers at once</td></tr>
+<tr><td>raise_blocker</td><td>Escalation <span class="badge badge-new">NEW</span></td><td>Auto-escalates to architect with optional task_id</td></tr>
+<tr><td>request_review</td><td>Escalation <span class="badge badge-new">NEW</span></td><td>Ask architect to review before proceeding</td></tr>
+<tr><td>create_task</td><td>Tasks</td><td>With priority, blocked_by deps, run_id</td></tr>
+<tr><td>list_tasks</td><td>Tasks</td><td>Filter by status, shows claimable flag</td></tr>
+<tr><td>get_task</td><td>Tasks</td><td>Full detail with artifacts + what it blocks</td></tr>
+<tr><td>claim_task</td><td>Tasks</td><td>Claim if unblocked + within budget</td></tr>
+<tr><td>complete_task</td><td>Tasks</td><td>Requires artifacts (summary, files, tests, risks)</td></tr>
+<tr><td>lock_file</td><td>Locks</td><td>Reserve a file to prevent conflicts</td></tr>
+<tr><td>unlock_file</td><td>Locks</td><td>Release when done editing</td></tr>
+<tr><td>list_locks</td><td>Locks</td><td>Show all locked files and owners</td></tr>
+<tr><td>set_memory</td><td>Memory <span class="badge badge-new">NEW</span></td><td>Typed (decision/fact/constraint/artifact) + versioned + confidence</td></tr>
+<tr><td>get_memory</td><td>Memory <span class="badge badge-new">NEW</span></td><td>Read by key or filter by type, includes version history</td></tr>
+<tr><td>log_conversation</td><td>Audit</td><td>Record session turns for replay</td></tr>
+<tr><td>get_conversation</td><td>Audit</td><td>View peer conversations (architect sees all)</td></tr>
+</table>
+</div>
+
+<!-- BROKER ENDPOINTS -->
+<div class="section">
+<h2><span class="num">7</span> Broker HTTP Endpoints</h2>
+<p>The command center and MCP server communicate via these endpoints on <code>127.0.0.1:7899</code>.</p>
+
+<table>
+<tr><th>Method</th><th>Path</th><th>Purpose</th></tr>
+<tr><td><span class="badge" style="background:rgba(52,211,153,0.15);color:#34d399">GET</span></td><td>/dashboard</td><td>Interactive command center</td></tr>
+<tr><td><span class="badge" style="background:rgba(52,211,153,0.15);color:#34d399">GET</span></td><td>/health</td><td>Liveness check</td></tr>
+<tr><td><span class="badge" style="background:rgba(52,211,153,0.15);color:#34d399">GET</span></td><td>/peers</td><td>List peers with git + budget state</td></tr>
+<tr><td><span class="badge" style="background:rgba(52,211,153,0.15);color:#34d399">GET</span></td><td>/peer/{id}</td><td>Single peer full details</td></tr>
+<tr><td><span class="badge" style="background:rgba(52,211,153,0.15);color:#34d399">GET</span></td><td>/runs</td><td>List all runs</td></tr>
+<tr><td><span class="badge" style="background:rgba(52,211,153,0.15);color:#34d399">GET</span></td><td>/runs/{id}</td><td>Run detail with tasks + message count</td></tr>
+<tr><td><span class="badge" style="background:rgba(52,211,153,0.15);color:#34d399">GET</span></td><td>/memory/history</td><td>Version history for a memory key</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/pause</td><td>Pause an agent</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/resume</td><td>Resume an agent</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/ping</td><td>Health check single peer</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/ping-all</td><td>Health check all peers</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/config</td><td>Set poll interval per agent</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/budget</td><td>Set/reset token budget per agent</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/runs</td><td>Create/update runs</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/kill-peer</td><td>Kill agent: mark dead, release locks, reassign tasks</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/unregister</td><td>Hard-delete a peer from database</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/pause-all</td><td>Pause all active agents</td></tr>
+<tr><td><span class="badge" style="background:rgba(96,165,250,0.15);color:#60a5fa">POST</span></td><td>/resume-all</td><td>Resume all agents</td></tr>
+</table>
+</div>
+
+<!-- AGENT TEAMS -->
+<div class="section">
+<h2><span class="num">8</span> Use with Agent Teams</h2>
+<p>C2 Lattice + Claude Agent Teams work together. Teams spawns agents, Peers monitors them.</p>
+<pre style="color:#94a3b8;border-color:#1e293b"># In your Claude Code settings (~/.claude/settings.json):
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}</pre>
+<div class="callout callout-tip">
+  <strong>Complementary:</strong> Agent Teams handles spawning and task assignment. C2 Lattice adds the dashboard, audit trail, budget controls, git awareness, and escalation routing that Teams doesn't have.
+</div>
+</div>
+
+<div class="footer">
+  C2 Lattice v4.1 &mdash; Python stdlib only &mdash;
+  <a href="https://github.com/GlobalCan/c2-lattice">github.com/GlobalCan/c2-lattice</a>
+</div>
+
+<script>
+function copyCmd(btn){
+  const pre=btn.parentElement;
+  const text=pre.textContent.replace('Copy','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='Copied!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copy';btn.classList.remove('copied')},2000);
+  });
+}
+</script>
+</body>
+</html>

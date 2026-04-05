@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Area10 Command Center — Mission Control for AI Agent Teams</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06080d;--bg-2:#0c1018;--bg-3:#111827;
+  --border:rgba(255,255,255,0.06);--border-hover:rgba(255,255,255,0.12);
+  --text:#e8edf3;--text-dim:#8694a8;--text-bright:#f8fafc;
+  --green:#22c55e;--blue:#3b82f6;--purple:#8b5cf6;--amber:#f59e0b;--red:#ef4444;--cyan:#06b6d4;--pink:#ec4899;
+  --green-glow:rgba(34,197,94,0.15);--blue-glow:rgba(59,130,246,0.12);--purple-glow:rgba(139,92,246,0.1);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.7;font-size:17px}
+a{color:var(--green);text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.85em}
+
+/* ---- NAV ---- */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;background:rgba(6,8,13,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+nav .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1rem;color:var(--text-bright)}
+nav .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+nav .links{display:flex;gap:24px;font-size:0.88rem;color:var(--text-dim)}
+nav .links a{color:var(--text-dim);transition:color 0.2s}
+nav .links a:hover{color:var(--text-bright);text-decoration:none}
+nav .cta-btn{background:var(--green);color:#000;padding:7px 18px;border-radius:8px;font-weight:600;font-size:0.8rem;transition:all 0.2s}
+nav .cta-btn:hover{background:#16a34a;text-decoration:none;box-shadow:0 0 20px var(--green-glow)}
+
+/* ---- SECTIONS ---- */
+section{padding:120px 40px;max-width:1200px;margin:0 auto}
+.section-label{font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--green);margin-bottom:16px}
+.section-title{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;color:var(--text-bright);letter-spacing:-0.03em;line-height:1.15;margin-bottom:16px}
+.section-sub{font-size:1.05rem;color:var(--text-dim);max-width:680px;line-height:1.75}
+
+/* ---- HERO ---- */
+.hero{padding-top:140px;text-align:center;position:relative}
+.hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:800px;height:500px;background:radial-gradient(ellipse,var(--green-glow) 0%,transparent 70%);pointer-events:none}
+.hero .section-title{font-size:clamp(2.5rem,6vw,4rem);max-width:800px;margin:0 auto 20px}
+.hero .section-sub{max-width:650px;margin:0 auto 36px;font-size:1.15rem}
+.hero-stats{display:flex;justify-content:center;gap:40px;margin-bottom:40px;flex-wrap:wrap}
+.hero-stat{text-align:center}
+.hero-stat .num{font-size:2.2rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:var(--text-bright)}
+.hero-stat .label{font-size:0.75rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px}
+.hero-cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.hero-cta .primary{background:var(--green);color:#000;padding:12px 28px;border-radius:10px;font-weight:700;font-size:0.95rem;transition:all 0.2s;border:none;cursor:pointer}
+.hero-cta .primary:hover{background:#16a34a;box-shadow:0 0 30px var(--green-glow);text-decoration:none}
+.hero-cta .secondary{background:transparent;color:var(--text);padding:12px 28px;border-radius:10px;font-weight:600;font-size:0.95rem;border:1px solid var(--border);transition:all 0.2s;cursor:pointer}
+.hero-cta .secondary:hover{border-color:var(--border-hover);background:rgba(255,255,255,0.03);text-decoration:none}
+
+/* ---- GLASS CARDS ---- */
+.glass{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:16px;backdrop-filter:blur(10px);transition:border-color 0.3s,transform 0.3s}
+.glass:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+
+/* ---- PROBLEM / SOLUTION ---- */
+.problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:48px}
+@media(max-width:768px){.problem-grid{grid-template-columns:1fr}}
+.problem-card{padding:28px;border-radius:16px}
+.problem-card.before{background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.1)}
+.problem-card.after{background:var(--green-glow);border:1px solid rgba(34,197,94,0.15)}
+.problem-card h3{font-size:1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.problem-card.before h3{color:var(--red)}
+.problem-card.after h3{color:var(--green)}
+.problem-card ul{list-style:none;font-size:0.92rem;color:var(--text-dim);line-height:2.2}
+.problem-card ul li::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:10px;vertical-align:middle}
+.problem-card.before ul li::before{background:var(--red)}
+.problem-card.after ul li::before{background:var(--green)}
+
+/* ---- FEATURES ---- */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+@media(max-width:900px){.features-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.features-grid{grid-template-columns:1fr}}
+.feature-card{padding:32px;cursor:default;border-left:3px solid rgba(255,255,255,0.06)}
+.feature-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:16px}
+.feature-card h3{font-size:1rem;font-weight:700;color:var(--text-bright);margin-bottom:8px}
+.feature-card p{font-size:0.88rem;color:var(--text-dim);line-height:1.7}
+.feature-group{margin-top:56px}
+.feature-group:first-of-type{margin-top:0}
+.feature-group-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.feature-group-header .group-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.feature-group-header h3{font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-dim)}
+.feature-group-header span.group-count{font-size:0.65rem;color:var(--text-dim);background:rgba(255,255,255,0.04);padding:2px 8px;border-radius:10px}
+.feature-group .features-grid{margin-top:0}
+
+/* ---- ARCHITECTURE ---- */
+.arch-diagram{background:var(--bg-2);border:1px solid var(--border);border-radius:16px;padding:32px;margin-top:48px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;line-height:2;color:var(--text-dim);overflow-x:auto}
+.arch-diagram .highlight{color:var(--green);font-weight:600}
+.arch-diagram .dim{color:var(--text-dim)}
+.arch-diagram .blue{color:var(--blue)}
+.arch-diagram .purple{color:var(--purple)}
+.arch-diagram .amber{color:var(--amber)}
+
+/* ---- TOOLS ---- */
+.tools-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:48px}
+@media(max-width:900px){.tools-grid{grid-template-columns:repeat(2,1fr)}}
+.tool-item{padding:14px 16px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;gap:10px;font-size:0.78rem;transition:border-color 0.2s}
+.tool-item:hover{border-color:var(--border-hover)}
+.tool-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tool-name{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text-bright)}
+.tool-cat{font-size:0.72rem;color:var(--text-dim)}
+
+/* ---- SECURITY ---- */
+.security-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:48px}
+@media(max-width:768px){.security-grid{grid-template-columns:1fr}}
+.security-item{padding:24px;display:flex;gap:16px;align-items:flex-start}
+.security-icon{width:40px;height:40px;border-radius:10px;background:rgba(34,197,94,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem;color:var(--green)}
+.security-item h4{font-size:0.88rem;font-weight:700;color:var(--text-bright);margin-bottom:4px}
+.security-item p{font-size:0.85rem;color:var(--text-dim);line-height:1.7}
+
+/* ---- SETUP ---- */
+.setup-steps{display:flex;flex-direction:column;gap:16px;margin-top:48px;max-width:700px}
+.step{display:flex;gap:16px;align-items:flex-start;padding:20px 24px}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--green);color:#000;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;flex-shrink:0}
+.step-content h4{font-size:0.9rem;font-weight:700;color:var(--text-bright);margin-bottom:4px}
+.step-content p{font-size:0.88rem;color:var(--text-dim)}
+.step-content code{font-size:0.78rem;display:inline-block;margin-top:6px;background:var(--bg);padding:6px 12px;border-radius:6px;border:1px solid var(--border)}
+
+/* ---- FEATURE SPOTLIGHTS ---- */
+.spotlight{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-top:64px}
+.spotlight:first-child{margin-top:0}
+.spotlight.reverse{direction:rtl}
+.spotlight.reverse>*{direction:ltr}
+.spotlight-text{display:flex;flex-direction:column;gap:12px}
+.spotlight-text .spot-label{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;padding:4px 10px;border-radius:20px;display:inline-block;width:fit-content}
+.spotlight-text h3{font-size:clamp(1.2rem,2.5vw,1.6rem);font-weight:800;color:var(--text-bright);letter-spacing:-0.02em;line-height:1.2}
+.spotlight-text p{font-size:0.88rem;color:var(--text-dim);line-height:1.7}
+.spotlight-visual{border-radius:16px;overflow:hidden;position:relative}
+@media(max-width:768px){
+  .spotlight,.spotlight.reverse{grid-template-columns:1fr;direction:ltr}
+  .spotlight.reverse>*{direction:ltr}
+}
+
+/* ---- DASHBOARD MOCKUP ---- */
+.mock-dashboard{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:0.7rem;min-height:320px}
+.mock-titlebar{display:flex;align-items:center;gap:8px;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.mock-dots{display:flex;gap:5px}
+.mock-dots span{width:10px;height:10px;border-radius:50%}
+.mock-titlebar-text{font-size:0.65rem;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin-left:8px}
+.mock-bento{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;gap:10px}
+.mock-card{background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:10px;padding:12px;position:relative;overflow:hidden}
+.mock-card-title{font-size:0.6rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
+.mock-peer{display:flex;align-items:center;gap:8px;padding:6px 0}
+.mock-avatar{width:26px;height:26px;border-radius:50%;flex-shrink:0}
+.mock-peer-info{display:flex;flex-direction:column}
+.mock-peer-name{font-size:0.7rem;font-weight:600;color:var(--text-bright)}
+.mock-peer-status{font-size:0.58rem;color:var(--text-dim)}
+.mock-stat-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0}
+.mock-stat-label{font-size:0.62rem;color:var(--text-dim)}
+.mock-stat-value{font-size:0.85rem;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text-bright)}
+.mock-bar{height:5px;border-radius:3px;background:rgba(255,255,255,0.06);margin-top:4px;overflow:hidden}
+.mock-bar-fill{height:100%;border-radius:3px}
+.mock-task-row{display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.mock-task-row:last-child{border-bottom:none}
+.mock-task-badge{font-size:0.55rem;padding:2px 6px;border-radius:4px;font-weight:600;flex-shrink:0}
+.mock-task-text{font-size:0.65rem;color:var(--text);flex:1}
+.mock-esc-item{display:flex;align-items:center;gap:6px;padding:5px 0}
+.mock-esc-icon{width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:0.55rem;flex-shrink:0}
+.mock-esc-text{font-size:0.62rem;color:var(--text-dim)}
+@media(max-width:600px){.mock-bento{grid-template-columns:1fr}}
+
+/* ---- CONFLICT VISUAL ---- */
+.conflict-visual{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:16px;align-items:center}
+.conflict-agents{display:flex;gap:40px;align-items:flex-start;justify-content:center;width:100%;position:relative}
+.conflict-agent{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1;max-width:160px}
+.conflict-agent-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.conflict-agent-name{font-size:0.75rem;font-weight:700;color:var(--text-bright)}
+.conflict-file-list{font-size:0.65rem;color:var(--text-dim);text-align:center;line-height:1.6}
+.conflict-file-list .overlap{color:var(--red);font-weight:600}
+.conflict-warning{display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px 16px;width:100%;max-width:320px}
+.conflict-warning svg{flex-shrink:0}
+.conflict-warning-text{font-size:0.7rem;color:var(--red);font-weight:600}
+.conflict-resolution{display:flex;align-items:center;gap:8px;background:var(--green-glow);border:1px solid rgba(34,197,94,0.15);border-radius:10px;padding:10px 16px;width:100%;max-width:320px}
+.conflict-resolution svg{flex-shrink:0}
+.conflict-resolution-text{font-size:0.7rem;color:var(--green);font-weight:600}
+
+/* ---- TASK DAG VISUAL ---- */
+.dag-visual{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.dag-row{display:flex;gap:12px;align-items:center;justify-content:center}
+.dag-node{padding:8px 16px;border-radius:10px;font-size:0.7rem;font-weight:700;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px;border:1px solid;position:relative;min-width:120px;justify-content:center}
+.dag-node.completed{background:rgba(34,197,94,0.08);border-color:rgba(34,197,94,0.2);color:var(--green)}
+.dag-node.in-progress{background:rgba(59,130,246,0.08);border-color:rgba(59,130,246,0.2);color:var(--blue);animation:dag-pulse 2s ease-in-out infinite}
+.dag-node.blocked{background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.08);color:var(--text-dim)}
+.dag-node.ready{background:rgba(245,158,11,0.08);border-color:rgba(245,158,11,0.2);color:var(--amber)}
+@keyframes dag-pulse{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,0.15)}50%{box-shadow:0 0 12px 4px rgba(59,130,246,0.1)}}
+.dag-arrow{color:var(--text-dim);font-size:0.75rem;display:flex;align-items:center}
+.dag-arrow svg{width:16px;height:16px}
+.dag-legend{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;justify-content:center}
+.dag-legend-item{display:flex;align-items:center;gap:5px;font-size:0.6rem;color:var(--text-dim)}
+.dag-legend-dot{width:8px;height:8px;border-radius:50%}
+
+/* ---- BUDGET VISUAL ---- */
+.budget-visual{background:var(--bg-2);border:1px solid var(--border);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:16px;align-items:center}
+.budget-rings{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+.budget-ring-card{display:flex;flex-direction:column;align-items:center;gap:8px}
+.budget-ring{width:90px;height:90px;position:relative}
+.budget-ring svg{transform:rotate(-90deg);width:90px;height:90px}
+.budget-ring circle{fill:none;stroke-width:6;stroke-linecap:round}
+.budget-ring .track{stroke:rgba(255,255,255,0.06)}
+.budget-ring .fill{transition:stroke-dashoffset 1.5s ease}
+.budget-ring-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.7rem;font-weight:800;font-family:'JetBrains Mono',monospace}
+.budget-ring-name{font-size:0.68rem;font-weight:600;color:var(--text-bright)}
+.budget-ring-sub{font-size:0.58rem;color:var(--text-dim)}
+.budget-paused{display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);border-radius:10px;padding:10px 16px}
+.budget-paused-text{font-size:0.7rem;color:var(--red);font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:0.05em}
+
+/* ---- FULL DASHBOARD PREVIEW ---- */
+.dashboard-preview{margin-top:48px}
+.dash-preview-frame{background:var(--bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.dash-preview-chrome{display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--bg-2);border-bottom:1px solid var(--border)}
+.dash-preview-chrome .mock-dots span{width:11px;height:11px}
+.dash-preview-url{font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);background:rgba(255,255,255,0.04);padding:5px 14px;border-radius:6px;margin-left:8px;flex:1;max-width:400px}
+.dash-body{padding:20px;display:grid;grid-template-columns:2fr 1fr;grid-template-rows:auto auto auto;gap:14px}
+.dash-body .full-width{grid-column:1/-1}
+.dash-stats-strip{display:flex;gap:12px}
+.dash-stat-box{flex:1;background:rgba(255,255,255,0.025);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.dash-stat-box .val{font-size:1.3rem;font-weight:800;font-family:'JetBrains Mono',monospace;color:var(--text-bright)}
+.dash-stat-box .lbl{font-size:0.58rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-top:2px}
+.dash-donut{width:56px;height:56px;border-radius:50%;margin:0 auto 4px;position:relative}
+.dash-donut::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:var(--bg-2)}
+.dash-peer-list{display:flex;flex-direction:column;gap:8px}
+.dash-peer-row{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px}
+.dash-peer-av{width:30px;height:30px;border-radius:50%;flex-shrink:0}
+.dash-peer-meta{flex:1;display:flex;flex-direction:column}
+.dash-peer-meta .name{font-size:0.72rem;font-weight:700;color:var(--text-bright)}
+.dash-peer-meta .desc{font-size:0.6rem;color:var(--text-dim)}
+.dash-peer-badge{font-size:0.55rem;padding:3px 8px;border-radius:20px;font-weight:600}
+.dash-peer-btns{display:flex;gap:4px}
+.dash-peer-btns span{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:var(--text-dim)}
+.dash-tasks-panel{display:flex;flex-direction:column;gap:6px}
+.dash-task-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px}
+.dash-task-item .id{font-size:0.6rem;font-family:'JetBrains Mono',monospace;color:var(--text-dim);width:28px}
+.dash-task-item .title{font-size:0.68rem;color:var(--text);flex:1}
+.dash-task-item .badge{font-size:0.55rem;padding:2px 7px;border-radius:4px;font-weight:600}
+@media(max-width:768px){.dash-body{grid-template-columns:1fr}.dash-stats-strip{flex-wrap:wrap}}
+
+/* ---- WORKFLOW WALKTHROUGH ---- */
+.workflow-timeline{display:flex;align-items:flex-start;gap:0;margin-top:48px;position:relative;overflow-x:auto;padding:20px 0}
+.workflow-step{display:flex;flex-direction:column;align-items:center;flex:1;min-width:160px;position:relative;z-index:1}
+.workflow-icon{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;position:relative}
+.workflow-step-title{font-size:0.78rem;font-weight:700;color:var(--text-bright);text-align:center;margin-bottom:4px}
+.workflow-step-desc{font-size:0.68rem;color:var(--text-dim);text-align:center;max-width:140px;line-height:1.5}
+.workflow-arrow{display:flex;align-items:center;justify-content:center;padding-top:18px;color:var(--text-dim);min-width:40px;flex-shrink:0}
+.workflow-arrow svg{width:24px;height:24px}
+@media(max-width:768px){
+  .workflow-timeline{flex-direction:column;align-items:center;gap:12px}
+  .workflow-arrow{transform:rotate(90deg);padding:0}
+}
+
+/* ---- ARCHITECTURE VISUAL ---- */
+.arch-visual{margin-top:48px;display:flex;flex-direction:column;align-items:center;gap:0;position:relative}
+.arch-box{padding:20px 32px;border-radius:14px;text-align:center;position:relative;z-index:1;min-width:280px}
+.arch-box-title{font-size:0.9rem;font-weight:800;color:var(--text-bright);display:flex;align-items:center;gap:8px;justify-content:center}
+.arch-box-sub{font-size:0.68rem;color:var(--text-dim);margin-top:4px}
+.arch-connector{width:2px;height:40px;background:linear-gradient(to bottom,var(--green),var(--blue));position:relative;z-index:0}
+.arch-connector::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--green);position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);animation:arch-dot 2s ease-in-out infinite}
+@keyframes arch-dot{0%{bottom:100%;opacity:0}50%{opacity:1}100%{bottom:-4px;opacity:0}}
+.arch-servers{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.arch-server{padding:14px 20px;border-radius:12px;background:rgba(255,255,255,0.025);border:1px solid var(--border);text-align:center;min-width:140px}
+.arch-server-name{font-size:0.78rem;font-weight:700;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;gap:6px;justify-content:center}
+.arch-server-desc{font-size:0.6rem;color:var(--text-dim);margin-top:4px}
+.arch-fan{display:flex;justify-content:center;gap:60px;position:relative}
+.arch-fan::before{content:'';position:absolute;top:0;left:25%;right:25%;height:1px;background:linear-gradient(to right,transparent,var(--blue),transparent)}
+.arch-fan-line{width:1px;height:30px;background:var(--blue)}
+
+/* ---- CTA ---- */
+.final-cta{text-align:center;padding:120px 32px;position:relative}
+.final-cta::before{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,var(--green-glow) 0%,transparent 70%);pointer-events:none}
+.final-cta .section-title{position:relative}
+.final-cta .hero-cta{position:relative;margin-top:32px}
+
+/* ---- FOOTER ---- */
+footer{text-align:center;padding:32px;color:var(--text-dim);font-size:0.78rem;border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo"><div class="dot"></div>Area10 Command Center</div>
+  <div class="links">
+    <a href="#features">Features</a>
+    <a href="#dashboard-preview">Dashboard</a>
+    <a href="#tools">Tools</a>
+    <a href="#security">Security</a>
+    <a href="#setup">Setup</a>
+  </div>
+  <a href="https://github.com/GlobalCan/c2-lattice" class="cta-btn" target="_blank">View on GitHub</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="section-label">Mission Control for AI Agent Teams</div>
+  <h1 class="section-title">Stop switching terminals.<br>Start commanding agents.</h1>
+  <p class="section-sub">One browser tab to pause, resume, kill, budget, message, and monitor every Claude Code session on your machine. Zero dependencies. Python stdlib only.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">20</div><div class="label">MCP Tools</div></div>
+    <div class="hero-stat"><div class="num">96</div><div class="label">Tests</div></div>
+    <div class="hero-stat"><div class="num">0</div><div class="label">Dependencies</div></div>
+    <div class="hero-stat"><div class="num">&lt;3</div><div class="label">Commands to Launch</div></div>
+  </div>
+  <div class="hero-cta">
+    <a href="#setup" class="primary">Get Started</a>
+    <a href="#features" class="secondary">See Features</a>
+  </div>
+</section>
+
+<!-- PROBLEM / SOLUTION -->
+<section>
+  <div class="section-label">The Problem</div>
+  <h2 class="section-title">Your AI agents are flying blind</h2>
+  <p class="section-sub">Multiple Claude Code sessions with no shared state, no visibility, and no control.</p>
+  <div class="problem-grid">
+    <div class="problem-card before">
+      <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Without Area10</h3>
+      <ul>
+        <li>Switching between 4+ terminal windows</li>
+        <li>No idea what each agent is working on</li>
+        <li>Agents edit the same files, create merge conflicts</li>
+        <li>Runaway agents burn through token budgets</li>
+        <li>Blockers sit unnoticed for hours</li>
+        <li>No audit trail of what happened</li>
+      </ul>
+    </div>
+    <div class="problem-card after">
+      <h3><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> With Area10</h3>
+      <ul>
+        <li>One browser tab shows everything</li>
+        <li>See each agent's status, branch, and task</li>
+        <li>Git conflict warnings before files collide</li>
+        <li>Budget caps prevent quota burn</li>
+        <li>Blockers auto-escalate to you instantly</li>
+        <li>Full structured telemetry + activity log</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-label">What You Get</div>
+  <h2 class="section-title">Everything you need to direct a team</h2>
+  <p class="section-sub">12 capabilities across 4 domains that turn chaos into coordinated execution.</p>
+
+  <!-- GROUP 1: Agent Control -->
+  <div class="feature-group">
+    <div class="feature-group-header">
+      <div class="group-icon" style="background:rgba(239,68,68,0.08);color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+      <h3>Agent Control</h3>
+      <span class="group-count">3 tools</span>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:rgba(239,68,68,0.08);color:var(--red)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg></div>
+        <h3>Pause &amp; Resume</h3>
+        <p>Freeze any agent mid-task from the browser. Send corrections, then resume. Paused agents block on every MCP tool call until you give the green light.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:var(--green-glow);color:var(--green)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg></div>
+        <h3>Budget Caps</h3>
+        <p>Set token limits per agent with circular progress rings. Agents are blocked from claiming new tasks when over budget. Prevents runaway API bills from infinite loops.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:var(--purple-glow);color:var(--purple)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        <h3>Browser Command Center</h3>
+        <p>Bento grid dashboard with inline controls for everything. Kill agents, create tasks, set shared memory, send messages, adjust budgets — all from one browser tab.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROUP 2: Coordination -->
+  <div class="feature-group">
+    <div class="feature-group-header">
+      <div class="group-icon" style="background:var(--blue-glow);color:var(--blue)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/></svg></div>
+      <h3>Coordination</h3>
+      <span class="group-count">4 tools</span>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:var(--purple-glow);color:var(--purple)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3>Task DAGs</h3>
+        <p>Create tasks with dependency chains. Blocked tasks auto-unblock when predecessors complete with artifacts. Agents claim and work through the graph autonomously.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:var(--green-glow);color:var(--green)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <h3>File Locks</h3>
+        <p>Reserve files so other agents know what you're editing. Path-normalized to prevent bypass (<code>a.py</code> vs <code>./a.py</code>). Locks auto-release when agents die.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:var(--blue-glow);color:var(--blue)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <h3>7 Message Categories</h3>
+        <p>Typed messaging: status_update, question, finding, alert, blocker, error, review_request. Content filtering with NFKC normalization blocks prompt injection via messages.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:rgba(6,182,212,0.08);color:var(--cyan)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <h3>Run-Level Orchestration</h3>
+        <p>Group tasks and messages by run to isolate parallel feature work. Each run has its own scope, progress tracking, and agent assignments.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROUP 3: Intelligence -->
+  <div class="feature-group">
+    <div class="feature-group-header">
+      <div class="group-icon" style="background:rgba(245,158,11,0.08);color:var(--amber)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+      <h3>Intelligence</h3>
+      <span class="group-count">3 tools</span>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:var(--blue-glow);color:var(--blue)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><path d="M11 18H8a2 2 0 0 1-2-2V9"/></svg></div>
+        <h3>Git Awareness</h3>
+        <p>Every heartbeat captures the agent's branch, dirty files, and last commit. When two agents have overlapping dirty files, conflict warnings fire automatically in the dashboard.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.08);color:var(--amber)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <h3>Auto-Escalation</h3>
+        <p>Blockers route to the architect peer automatically. Errors broadcast to all peers. Review requests queue up for sign-off. Nothing sits silent — every issue surfaces.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:rgba(6,182,212,0.08);color:var(--cyan)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+        <h3>Versioned Memory</h3>
+        <p>Shared key-value store typed as decision, fact, constraint, or artifact. Full version history, confidence levels, and supersedes tracking so agents build on each other's knowledge.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROUP 4: Safety & Observability -->
+  <div class="feature-group">
+    <div class="feature-group-header">
+      <div class="group-icon" style="background:var(--green-glow);color:var(--green)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <h3>Safety &amp; Observability</h3>
+      <span class="group-count">2 tools</span>
+    </div>
+    <div class="features-grid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:rgba(236,72,153,0.08);color:var(--pink)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+        <h3>Denial Tracking</h3>
+        <p>Every content-filter or rate-limit rejection is counted per agent. After 20 rejections the agent auto-pauses and alerts the architect. Named stop reasons for every state change.</p>
+      </div>
+      <div class="feature-card glass">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.08);color:var(--amber)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <h3>Structured Telemetry</h3>
+        <p>JSON activity log records tool_calls, errors, rejections, and stop reasons per agent per heartbeat. Full audit trail with named stop reason taxonomy for post-mortem analysis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURE SPOTLIGHTS -->
+<section>
+  <div class="section-label">Deep Dive</div>
+  <h2 class="section-title">See each feature up close</h2>
+  <p class="section-sub">The capabilities that make multi-agent coordination actually work.</p>
+
+  <!-- Spotlight 1: Browser Command Center -->
+  <div class="spotlight" style="margin-top:48px">
+    <div class="spotlight-text">
+      <div class="spot-label" style="background:var(--purple-glow);color:var(--purple)">Command Center</div>
+      <h3>One browser tab to rule them all</h3>
+      <p>The Browser Command Center replaces terminal-switching with a bento grid dashboard. Every agent appears as a live card with its status, branch, current task, and budget usage visible at a glance.</p>
+      <p>Inline controls let you pause, resume, or kill any agent directly. Create tasks, set shared memory, send targeted messages, and trigger broadcasts without ever opening a terminal. The dashboard auto-refreshes every 3 seconds so you always see the latest state.</p>
+      <p>Built as a single-page HTML dashboard served by the broker itself. No React, no build step, no dependencies. Just open the URL and start commanding.</p>
+    </div>
+    <div class="spotlight-visual">
+      <div class="mock-dashboard">
+        <div class="mock-titlebar">
+          <div class="mock-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+          <div class="mock-titlebar-text">127.0.0.1:7899/dashboard</div>
+        </div>
+        <div class="mock-bento">
+          <div class="mock-card" style="grid-column:1/-1">
+            <div class="mock-card-title">Active Peers</div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <div class="mock-peer"><div class="mock-avatar" style="background:linear-gradient(135deg,var(--green),var(--blue))"></div><div class="mock-peer-info"><span class="mock-peer-name">architect-01</span><span class="mock-peer-status" style="color:var(--green)">active</span></div></div>
+              <div class="mock-peer"><div class="mock-avatar" style="background:linear-gradient(135deg,var(--blue),var(--purple))"></div><div class="mock-peer-info"><span class="mock-peer-name">worker-a7f3</span><span class="mock-peer-status" style="color:var(--blue)">in_progress</span></div></div>
+              <div class="mock-peer"><div class="mock-avatar" style="background:linear-gradient(135deg,var(--amber),var(--red))"></div><div class="mock-peer-info"><span class="mock-peer-name">worker-c2e1</span><span class="mock-peer-status" style="color:var(--amber)">paused</span></div></div>
+            </div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-title">Tasks</div>
+            <div class="mock-task-row"><span class="mock-task-badge" style="background:rgba(34,197,94,0.1);color:var(--green)">done</span><span class="mock-task-text">Set up DB schema</span></div>
+            <div class="mock-task-row"><span class="mock-task-badge" style="background:rgba(59,130,246,0.1);color:var(--blue)">wip</span><span class="mock-task-text">Build API routes</span></div>
+            <div class="mock-task-row"><span class="mock-task-badge" style="background:rgba(255,255,255,0.04);color:var(--text-dim)">blocked</span><span class="mock-task-text">Write tests</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-title">Stats</div>
+            <div class="mock-stat-row"><span class="mock-stat-label">Peers</span><span class="mock-stat-value" style="color:var(--green)">3</span></div>
+            <div class="mock-stat-row"><span class="mock-stat-label">Tasks</span><span class="mock-stat-value" style="color:var(--blue)">7</span></div>
+            <div class="mock-stat-row"><span class="mock-stat-label">Locks</span><span class="mock-stat-value" style="color:var(--amber)">2</span></div>
+          </div>
+          <div class="mock-card">
+            <div class="mock-card-title">Escalations</div>
+            <div class="mock-esc-item"><div class="mock-esc-icon" style="background:rgba(239,68,68,0.1);color:var(--red)">!</div><span class="mock-esc-text">worker-a7f3: DB connection timeout</span></div>
+            <div class="mock-esc-item"><div class="mock-esc-icon" style="background:rgba(245,158,11,0.1);color:var(--amber)">?</div><span class="mock-esc-text">worker-c2e1: review requested</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spotlight 2: Git Conflict Prevention -->
+  <div class="spotlight reverse" style="margin-top:64px">
+    <div class="spotlight-text">
+      <div class="spot-label" style="background:var(--blue-glow);color:var(--blue)">Git Awareness</div>
+      <h3>Conflicts caught before they happen</h3>
+      <p>Every agent reports its branch, dirty files, and last commit hash on each heartbeat. The broker cross-references all working trees in real time, so it knows the instant two agents touch the same file.</p>
+      <p>When overlap is detected, the broker fires a conflict warning to both agents before either one commits. The warning includes which files overlap and who holds what locks, giving agents enough context to self-coordinate or ask the architect for guidance.</p>
+      <p>Combined with file locks, this makes merge conflicts nearly impossible. Agents can work on the same codebase simultaneously without stepping on each other, because the system enforces awareness at the coordination layer.</p>
+    </div>
+    <div class="spotlight-visual">
+      <div class="conflict-visual">
+        <div class="conflict-agents">
+          <div class="conflict-agent">
+            <div class="conflict-agent-icon" style="background:linear-gradient(135deg,var(--blue),var(--purple))">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div class="conflict-agent-name">Worker A</div>
+            <div class="conflict-file-list">
+              src/api.py<br>
+              <span class="overlap">src/models.py</span><br>
+              src/routes.py
+            </div>
+          </div>
+          <div class="conflict-agent">
+            <div class="conflict-agent-icon" style="background:linear-gradient(135deg,var(--amber),var(--red))">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div class="conflict-agent-name">Worker B</div>
+            <div class="conflict-file-list">
+              src/tests.py<br>
+              <span class="overlap">src/models.py</span><br>
+              src/utils.py
+            </div>
+          </div>
+        </div>
+        <div class="conflict-warning">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span class="conflict-warning-text">CONFLICT: src/models.py touched by both agents</span>
+        </div>
+        <div class="conflict-resolution">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span class="conflict-resolution-text">Worker B locks src/utils.py instead. Zero conflicts.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spotlight 3: Task DAGs -->
+  <div class="spotlight" style="margin-top:64px">
+    <div class="spotlight-text">
+      <div class="spot-label" style="background:var(--purple-glow);color:var(--purple)">Task DAGs</div>
+      <h3>Dependencies that actually enforce order</h3>
+      <p>Tasks aren't just a list. Each task can declare dependencies on other tasks, forming a directed acyclic graph. Blocked tasks are physically unclaimable until every predecessor completes.</p>
+      <p>When an agent finishes a task, all downstream tasks that depended on it automatically unblock and become available for claiming. This means you can fan out parallel work and converge it naturally, without manual orchestration.</p>
+      <p>Completion requires artifacts: a summary of what was done, files touched, tests run, and known risks. No agent can mark a task "done" with an empty result. This creates a built-in audit trail for every piece of work.</p>
+    </div>
+    <div class="spotlight-visual">
+      <div class="dag-visual">
+        <div class="dag-row">
+          <div class="dag-node completed"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> T-1 Schema</div>
+        </div>
+        <div class="dag-row">
+          <div class="dag-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
+        </div>
+        <div class="dag-row" style="gap:20px">
+          <div class="dag-node in-progress"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg> T-2 API</div>
+          <div class="dag-node in-progress"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg> T-3 Auth</div>
+        </div>
+        <div class="dag-row">
+          <div class="dag-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
+        </div>
+        <div class="dag-row">
+          <div class="dag-node blocked"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> T-4 Tests</div>
+        </div>
+        <div class="dag-row">
+          <div class="dag-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
+        </div>
+        <div class="dag-row">
+          <div class="dag-node blocked"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> T-5 Deploy</div>
+        </div>
+        <div class="dag-legend">
+          <div class="dag-legend-item"><div class="dag-legend-dot" style="background:var(--green)"></div>Completed</div>
+          <div class="dag-legend-item"><div class="dag-legend-dot" style="background:var(--blue)"></div>In Progress</div>
+          <div class="dag-legend-item"><div class="dag-legend-dot" style="background:var(--text-dim)"></div>Blocked</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spotlight 4: Budget Caps -->
+  <div class="spotlight reverse" style="margin-top:64px">
+    <div class="spotlight-text">
+      <div class="spot-label" style="background:rgba(34,197,94,0.1);color:var(--green)">Budget Caps</div>
+      <h3>Token spend with hard limits, not hope</h3>
+      <p>Each agent gets a configurable token budget with real-time tracking. The broker enforces limits at the task-claim boundary: when an agent's budget is exhausted, it physically cannot claim new tasks. No more runaway loops burning through your API quota.</p>
+      <p>Visual progress rings in the dashboard show each agent's consumption at a glance. Green means healthy, amber means approaching the limit, and red means the agent has been auto-paused and needs attention.</p>
+      <p>Budget state persists across sessions and is included in the telemetry log, so you have a full accounting of token spend per agent, per run, per task. This makes cost attribution trivial for multi-agent projects.</p>
+    </div>
+    <div class="spotlight-visual">
+      <div class="budget-visual">
+        <div class="budget-rings">
+          <div class="budget-ring-card">
+            <div class="budget-ring">
+              <svg viewBox="0 0 90 90">
+                <circle class="track" cx="45" cy="45" r="38"/>
+                <circle class="fill" cx="45" cy="45" r="38" stroke="var(--green)" stroke-dasharray="238.76" stroke-dashoffset="95.5"/>
+              </svg>
+              <div class="budget-ring-label" style="color:var(--green)">60%</div>
+            </div>
+            <div class="budget-ring-name">architect-01</div>
+            <div class="budget-ring-sub">12K / 20K tokens</div>
+          </div>
+          <div class="budget-ring-card">
+            <div class="budget-ring">
+              <svg viewBox="0 0 90 90">
+                <circle class="track" cx="45" cy="45" r="38"/>
+                <circle class="fill" cx="45" cy="45" r="38" stroke="var(--amber)" stroke-dasharray="238.76" stroke-dashoffset="35.8"/>
+              </svg>
+              <div class="budget-ring-label" style="color:var(--amber)">85%</div>
+            </div>
+            <div class="budget-ring-name">worker-a7f3</div>
+            <div class="budget-ring-sub">17K / 20K tokens</div>
+          </div>
+          <div class="budget-ring-card">
+            <div class="budget-ring">
+              <svg viewBox="0 0 90 90">
+                <circle class="track" cx="45" cy="45" r="38"/>
+                <circle class="fill" cx="45" cy="45" r="38" stroke="var(--red)" stroke-dasharray="238.76" stroke-dashoffset="0"/>
+              </svg>
+              <div class="budget-ring-label" style="color:var(--red)">100%</div>
+            </div>
+            <div class="budget-ring-name">worker-c2e1</div>
+            <div class="budget-ring-sub">20K / 20K tokens</div>
+          </div>
+        </div>
+        <div class="budget-paused">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          <span class="budget-paused-text">PAUSED: worker-c2e1 exceeded budget limit</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD PREVIEW -->
+<section id="dashboard-preview">
+  <div class="section-label">See It In Action</div>
+  <h2 class="section-title">Your actual command center</h2>
+  <p class="section-sub">Everything from peer status to task progress in one bento grid. No switching. No guessing.</p>
+  <div class="dashboard-preview">
+    <div class="dash-preview-frame">
+      <div class="dash-preview-chrome">
+        <div class="mock-dots"><span style="background:#ff5f57"></span><span style="background:#febc2e"></span><span style="background:#28c840"></span></div>
+        <div class="dash-preview-url">127.0.0.1:7899/dashboard</div>
+      </div>
+      <div class="dash-body">
+        <!-- Stats Strip -->
+        <div class="dash-stats-strip full-width">
+          <div class="dash-stat-box">
+            <div class="dash-donut" style="background:conic-gradient(var(--green) 0% 66%,var(--amber) 66% 83%,var(--red) 83% 100%)"></div>
+            <div class="val" style="color:var(--green)">3</div><div class="lbl">Active Peers</div>
+          </div>
+          <div class="dash-stat-box"><div class="val" style="color:var(--blue)">12</div><div class="lbl">Total Tasks</div></div>
+          <div class="dash-stat-box"><div class="val" style="color:var(--green)">7</div><div class="lbl">Completed</div></div>
+          <div class="dash-stat-box"><div class="val" style="color:var(--amber)">3</div><div class="lbl">In Progress</div></div>
+          <div class="dash-stat-box"><div class="val" style="color:var(--red)">2</div><div class="lbl">Blocked</div></div>
+        </div>
+        <!-- Peer List -->
+        <div>
+          <div style="font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;font-weight:600">Peers</div>
+          <div class="dash-peer-list">
+            <div class="dash-peer-row">
+              <div class="dash-peer-av" style="background:linear-gradient(135deg,var(--green),var(--blue))"></div>
+              <div class="dash-peer-meta"><span class="name">architect-01</span><span class="desc">Coordinating feature-auth sprint</span></div>
+              <div class="dash-peer-badge" style="background:rgba(34,197,94,0.1);color:var(--green)">active</div>
+              <div class="dash-peer-btns"><span title="Pause">||</span><span title="Message">M</span></div>
+            </div>
+            <div class="dash-peer-row">
+              <div class="dash-peer-av" style="background:linear-gradient(135deg,var(--blue),var(--purple))"></div>
+              <div class="dash-peer-meta"><span class="name">worker-a7f3</span><span class="desc">Building API endpoints</span></div>
+              <div class="dash-peer-badge" style="background:rgba(59,130,246,0.1);color:var(--blue)">working</div>
+              <div class="dash-peer-btns"><span title="Pause">||</span><span title="Kill">X</span></div>
+            </div>
+            <div class="dash-peer-row">
+              <div class="dash-peer-av" style="background:linear-gradient(135deg,var(--amber),var(--red))"></div>
+              <div class="dash-peer-meta"><span class="name">worker-c2e1</span><span class="desc">Budget exceeded, awaiting reset</span></div>
+              <div class="dash-peer-badge" style="background:rgba(239,68,68,0.1);color:var(--red)">paused</div>
+              <div class="dash-peer-btns"><span title="Resume" style="color:var(--green)">></span><span title="Kill">X</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Tasks & Escalations -->
+        <div>
+          <div style="font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;font-weight:600">Task Queue</div>
+          <div class="dash-tasks-panel">
+            <div class="dash-task-item"><span class="id">#1</span><span class="title">Set up database schema</span><span class="badge" style="background:rgba(34,197,94,0.1);color:var(--green)">done</span></div>
+            <div class="dash-task-item"><span class="id">#2</span><span class="title">Build REST API routes</span><span class="badge" style="background:rgba(59,130,246,0.1);color:var(--blue)">wip</span></div>
+            <div class="dash-task-item"><span class="id">#3</span><span class="title">Implement auth middleware</span><span class="badge" style="background:rgba(59,130,246,0.1);color:var(--blue)">wip</span></div>
+            <div class="dash-task-item"><span class="id">#4</span><span class="title">Write integration tests</span><span class="badge" style="background:rgba(255,255,255,0.04);color:var(--text-dim)">blocked</span></div>
+            <div class="dash-task-item"><span class="id">#5</span><span class="title">Deploy to staging</span><span class="badge" style="background:rgba(255,255,255,0.04);color:var(--text-dim)">blocked</span></div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.1em;margin:14px 0 8px;font-weight:600">Escalations</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.1);border-radius:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span style="font-size:0.65rem;color:var(--red)">BLOCKER: worker-a7f3 — DB connection pool exhausted</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(245,158,11,0.04);border:1px solid rgba(245,158,11,0.1);border-radius:8px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <span style="font-size:0.65rem;color:var(--amber)">REVIEW: worker-c2e1 — Auth middleware ready for sign-off</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOW WALKTHROUGH -->
+<section>
+  <div class="section-label">Coordination Flow</div>
+  <h2 class="section-title">How agents coordinate</h2>
+  <p class="section-sub">No central scheduler. Agents self-organize using locks, messages, and task dependencies.</p>
+  <div class="workflow-timeline">
+    <div class="workflow-step">
+      <div class="workflow-icon" style="background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.15)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="workflow-step-title">Agent A locks file</div>
+      <div class="workflow-step-desc">Calls lock_file to reserve src/models.py</div>
+    </div>
+    <div class="workflow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+    <div class="workflow-step">
+      <div class="workflow-icon" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.15)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="workflow-step-title">Agent B sees lock</div>
+      <div class="workflow-step-desc">list_locks reveals models.py is reserved</div>
+    </div>
+    <div class="workflow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+    <div class="workflow-step">
+      <div class="workflow-icon" style="background:var(--green-glow);border:1px solid rgba(34,197,94,0.15)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <div class="workflow-step-title">Agent B picks other file</div>
+      <div class="workflow-step-desc">Claims src/routes.py instead. No overlap.</div>
+    </div>
+    <div class="workflow-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></div>
+    <div class="workflow-step">
+      <div class="workflow-icon" style="background:var(--purple-glow);border:1px solid rgba(139,92,246,0.15)">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="workflow-step-title">Both complete</div>
+      <div class="workflow-step-desc">Zero conflicts. Both tasks done in parallel.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE (Visual) -->
+<section>
+  <div class="section-label">How It Works</div>
+  <h2 class="section-title">Clean, simple architecture</h2>
+  <p class="section-sub">Two components. One port. Zero external services.</p>
+  <div class="arch-visual">
+    <!-- Browser Box -->
+    <div class="arch-box" style="background:var(--purple-glow);border:1px solid rgba(139,92,246,0.2)">
+      <div class="arch-box-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Browser Command Center
+      </div>
+      <div class="arch-box-sub">http://127.0.0.1:7899/dashboard</div>
+    </div>
+    <!-- Connector -->
+    <div class="arch-connector"></div>
+    <!-- Broker Box -->
+    <div class="arch-box" style="background:var(--green-glow);border:1px solid rgba(34,197,94,0.2)">
+      <div class="arch-box-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Broker Daemon
+      </div>
+      <div class="arch-box-sub">Python stdlib HTTPServer + SQLite WAL</div>
+    </div>
+    <!-- Features under broker -->
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px;max-width:600px">
+      <span style="font-size:0.62rem;padding:4px 10px;border-radius:6px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.12);color:var(--blue)">Task DAGs</span>
+      <span style="font-size:0.62rem;padding:4px 10px;border-radius:6px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.12);color:var(--amber)">Escalation Router</span>
+      <span style="font-size:0.62rem;padding:4px 10px;border-radius:6px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.12);color:var(--blue)">Git Awareness</span>
+      <span style="font-size:0.62rem;padding:4px 10px;border-radius:6px;background:var(--purple-glow);border:1px solid rgba(139,92,246,0.12);color:var(--purple)">Versioned Memory</span>
+      <span style="font-size:0.62rem;padding:4px 10px;border-radius:6px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.12);color:var(--amber)">Denial Tracking</span>
+      <span style="font-size:0.62rem;padding:4px 10px;border-radius:6px;background:var(--purple-glow);border:1px solid rgba(139,92,246,0.12);color:var(--purple)">Telemetry</span>
+      <span style="font-size:0.62rem;padding:4px 10px;border-radius:6px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.12);color:var(--blue)">File Locks</span>
+      <span style="font-size:0.62rem;padding:4px 10px;border-radius:6px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.12);color:var(--blue)">Run Manager</span>
+    </div>
+    <!-- Connector to MCP servers -->
+    <div class="arch-connector" style="margin-top:12px"></div>
+    <!-- Fan out lines -->
+    <div class="arch-fan">
+      <div class="arch-fan-line"></div>
+      <div class="arch-fan-line"></div>
+      <div class="arch-fan-line"></div>
+    </div>
+    <!-- MCP Server boxes -->
+    <div class="arch-servers">
+      <div class="arch-server" style="border-color:rgba(245,158,11,0.15)">
+        <div class="arch-server-name" style="color:var(--amber)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+          Architect
+        </div>
+        <div class="arch-server-desc">Privileged: broadcast, kill, logs</div>
+      </div>
+      <div class="arch-server" style="border-color:rgba(59,130,246,0.15)">
+        <div class="arch-server-name" style="color:var(--blue)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+          Worker A
+        </div>
+        <div class="arch-server-desc">Budget-capped, pausable</div>
+      </div>
+      <div class="arch-server" style="border-color:rgba(59,130,246,0.15)">
+        <div class="arch-server-name" style="color:var(--blue)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+          Worker B
+        </div>
+        <div class="arch-server-desc">Budget-capped, pausable</div>
+      </div>
+    </div>
+    <div style="font-size:0.6rem;color:var(--text-dim);margin-top:16px;text-align:center">stdio JSON-RPC &mdash; one MCP server per Claude Code session</div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section id="tools">
+  <div class="section-label">20 MCP Tools</div>
+  <h2 class="section-title">Every tool your agents need</h2>
+  <p class="section-sub">Each tool has risk metadata (read-only flag, low/medium/high risk level) and safety warnings.</p>
+  <div class="tools-grid">
+    <div class="tool-item"><div class="tool-dot" style="background:var(--green)"></div><div><div class="tool-name">list_peers</div><div class="tool-cat">Discovery</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--green)"></div><div><div class="tool-name">view_dashboard</div><div class="tool-cat">Discovery</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">set_summary</div><div class="tool-cat">Discovery</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">send_message</div><div class="tool-cat">Messaging</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--green)"></div><div><div class="tool-name">check_messages</div><div class="tool-cat">Messaging</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">broadcast</div><div class="tool-cat">Messaging</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--red)"></div><div><div class="tool-name">raise_blocker</div><div class="tool-cat">Escalation</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--red)"></div><div><div class="tool-name">request_review</div><div class="tool-cat">Escalation</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">create_task</div><div class="tool-cat">Task DAGs</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--green)"></div><div><div class="tool-name">list_tasks</div><div class="tool-cat">Task DAGs</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--green)"></div><div><div class="tool-name">get_task</div><div class="tool-cat">Task DAGs</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">claim_task</div><div class="tool-cat">Task DAGs</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">complete_task</div><div class="tool-cat">Task DAGs</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">lock_file</div><div class="tool-cat">Locks</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">unlock_file</div><div class="tool-cat">Locks</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--green)"></div><div><div class="tool-name">list_locks</div><div class="tool-cat">Locks</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">set_memory</div><div class="tool-cat">Memory</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--green)"></div><div><div class="tool-name">get_memory</div><div class="tool-cat">Memory</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--amber)"></div><div><div class="tool-name">log_conversation</div><div class="tool-cat">Audit</div></div></div>
+    <div class="tool-item"><div class="tool-dot" style="background:var(--green)"></div><div><div class="tool-name">get_conversation</div><div class="tool-cat">Audit</div></div></div>
+  </div>
+  <p style="margin-top:16px;font-size:0.72rem;color:var(--text-dim)">
+    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);vertical-align:middle;margin-right:4px"></span> Read-only (low risk)
+    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--amber);vertical-align:middle;margin-left:16px;margin-right:4px"></span> Write (medium risk)
+    <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);vertical-align:middle;margin-left:16px;margin-right:4px"></span> Escalation (high priority)
+  </p>
+</section>
+
+<!-- SECURITY -->
+<section id="security">
+  <div class="section-label">Security</div>
+  <h2 class="section-title">Defense in depth, not security theater</h2>
+  <p class="section-sub">10 layers of protection. Audited by Claude + Codex. Designed against OWASP ASI07 (inter-agent communication).</p>
+  <div class="security-grid">
+    <div class="security-item glass">
+      <div class="security-icon" style="color:var(--green);background:rgba(34,197,94,0.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg></div>
+      <div><h4>HMAC Token Authentication</h4><p>Every peer receives a signed HMAC-SHA256 token at registration. Every request is validated. No token, no access. Tokens embed peer identity and role — tamper-proof without the broker's secret.</p></div>
+    </div>
+    <div class="security-item glass">
+      <div class="security-icon" style="color:var(--purple);background:rgba(139,92,246,0.12)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg></div>
+      <div><h4>Role-Based Access Control</h4><p>Three permission tiers: system, architect, worker. Workers can't kill peers or access logs. Architects can control other agents. Identity enforcement prevents impersonation — sender_id must match the token.</p></div>
+    </div>
+    <div class="security-item glass">
+      <div class="security-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+      <div><h4>Localhost Only</h4><p>Binds to 127.0.0.1 exclusively. Zero network exposure. No ports open to external traffic.</p></div>
+    </div>
+    <div class="security-item glass">
+      <div class="security-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div><h4>Content Filtering</h4><p>NFKC Unicode normalization + regex blocks: tool_use XML, function-call JSON, base64, long paths. Prevents prompt injection via messages.</p></div>
+    </div>
+    <div class="security-item glass">
+      <div class="security-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+      <div><h4>Rate Limiting</h4><p>10 messages per minute per peer. Sliding window. Prevents spam and abuse between sessions.</p></div>
+    </div>
+    <div class="security-item glass">
+      <div class="security-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+      <div><h4>Denial Tracking</h4><p>Tracks rejections per agent. Auto-pauses after 20 rejections. Named stop reasons for every state change.</p></div>
+    </div>
+    <div class="security-item glass">
+      <div class="security-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div><h4>PID Liveness</h4><p>Dead peer detection via <code>os.kill(pid, 0)</code>. Dead agents auto-cleaned, tasks reassigned, locks released.</p></div>
+    </div>
+    <div class="security-item glass">
+      <div class="security-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+      <div><h4>Tool Risk Metadata</h4><p>Every MCP tool annotated with <code>readOnlyHint</code> and risk level (low/medium/high). 8 read-only, 10 medium, 2 high.</p></div>
+    </div>
+    <div class="security-item glass">
+      <div class="security-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+      <div><h4>Input Validation</h4><p>ID regex validation, size caps (10KB messages, 100KB requests), numeric bounds clamping, path normalization.</p></div>
+    </div>
+    <div class="security-item glass">
+      <div class="security-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <div><h4>Zero Dependencies</h4><p>Python stdlib only. No pip install, no node_modules, no supply chain. The attack surface is the Python standard library.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SETUP -->
+<section id="setup">
+  <div class="section-label">Get Started</div>
+  <h2 class="section-title">Three commands. That's it.</h2>
+  <p class="section-sub">From zero to commanding a team of AI agents in under 60 seconds.</p>
+  <div class="setup-steps">
+    <div class="step glass">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Install the MCP server</h4>
+        <p>Registers globally for all Claude Code sessions.</p>
+        <code>python install.py</code>
+      </div>
+    </div>
+    <div class="step glass">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Start the broker</h4>
+        <p>Coordination hub. Auto-starts if you skip this step.</p>
+        <code>python broker.py</code>
+      </div>
+    </div>
+    <div class="step glass">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Open Claude Code sessions</h4>
+        <p>Each terminal gets its own auto-generated peer ID.</p>
+        <code>claude</code>
+      </div>
+    </div>
+    <div class="step glass">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Open the Command Center</h4>
+        <p>Everything in one browser tab.</p>
+        <code>http://127.0.0.1:7899/dashboard</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <div class="section-label">Open Source</div>
+  <h2 class="section-title">Ready to take control?</h2>
+  <p class="section-sub" style="margin:0 auto 0">20 tools. 96 tests. Zero dependencies.<br>Python stdlib only. Works today.</p>
+  <div class="hero-cta">
+    <a href="https://github.com/GlobalCan/c2-lattice" class="primary" target="_blank">View on GitHub</a>
+    <a href="#setup" class="secondary">Get Started</a>
+  </div>
+</section>
+
+<footer>
+  Area10 Command Center &mdash; Python stdlib only, zero pip dependencies &mdash; v4.1
+</footer>
+
+</body>
+</html>

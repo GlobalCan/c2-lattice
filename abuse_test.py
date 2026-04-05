@@ -117,7 +117,7 @@ s, d = post("/register", {"id": "good-user", "role": "worker", "pid": "not_a_num
 test("Register with string pid -> handles gracefully", True)  # should not crash
 
 # Actually register properly for later tests
-s, d = post("/register", {"id": "idiot-user", "role": "architect", "pid": 12345})
+s, d = post("/register", {"id": "abuse-tester", "role": "architect", "pid": 12345})
 TOKEN = d.get("token", "") if s == 200 else ""
 test("Legit registration works", s == 200 and TOKEN)
 
@@ -179,7 +179,7 @@ test("Register 50 peers rapidly -> no crash", not crash)
 # Try 50 task creates
 for i in range(50):
     try:
-        post("/tasks", {"title": f"spam task {i}", "priority": "low", "created_by": "idiot-user"}, TOKEN)
+        post("/tasks", {"title": f"spam task {i}", "priority": "low", "created_by": "abuse-tester"}, TOKEN)
     except Exception:
         crash = True
         break
@@ -199,10 +199,10 @@ test("GET /peer/nobody -> error (needs auth)", s >= 400)
 s, body = get("/messages/ghost")
 test("GET /messages/ghost -> error (needs auth)", s >= 400)
 
-s, d = post("/tasks/claim", {"task_id": -1, "peer_id": "idiot-user"}, TOKEN)
+s, d = post("/tasks/claim", {"task_id": -1, "peer_id": "abuse-tester"}, TOKEN)
 test("Claim task with negative ID -> error", s >= 400 or "error" in str(d))
 
-s, d = post("/tasks/claim", {"task_id": 0, "peer_id": "idiot-user"}, TOKEN)
+s, d = post("/tasks/claim", {"task_id": 0, "peer_id": "abuse-tester"}, TOKEN)
 test("Claim task 0 -> error", s >= 400 or "error" in str(d) or "not found" in str(d).lower())
 
 s, d = post("/pause", {"peer_id": "does-not-exist"}, TOKEN)
@@ -216,47 +216,47 @@ print("\n=== 8. UNICODE & SPECIAL CHARACTERS ===")
 s, d = post("/register", {"id": "user-emoji-test", "role": "worker", "pid": 11111})
 et = d.get("token", "") if s == 200 else TOKEN
 
-s, d = post("/tasks", {"title": "Task with emojis 🎉🔥💀", "priority": "high", "created_by": "idiot-user"}, TOKEN)
+s, d = post("/tasks", {"title": "Task with emojis 🎉🔥💀", "priority": "high", "created_by": "abuse-tester"}, TOKEN)
 test("Task with emoji title -> works or clean error", s == 200 or s >= 400)
 
-s, d = post("/send", {"sender_id": "idiot-user", "recipient_id": "user-emoji-test",
+s, d = post("/send", {"sender_id": "abuse-tester", "recipient_id": "user-emoji-test",
     "category": "status_update", "content": "Hello in Chinese: 你好世界. Arabic: مرحبا. Russian: Привет."}, TOKEN)
 test("Message with unicode -> works", s == 200)
 
-s, d = post("/memory", {"key": "unicode-test", "value": "日本語テスト", "peer_id": "idiot-user",
+s, d = post("/memory", {"key": "unicode-test", "value": "日本語テスト", "peer_id": "abuse-tester",
     "type": "fact", "confidence": "high"}, TOKEN)
 test("Memory with Japanese value -> works", s == 200)
 
 s, d = post("/register", {"id": "null-\x00-byte", "role": "worker", "pid": 11112})
 test("Register with null byte in id -> rejected or handles", True)  # should not crash
 
-s, d = post("/tasks", {"title": "<script>alert('xss')</script>", "priority": "high", "created_by": "idiot-user"}, TOKEN)
+s, d = post("/tasks", {"title": "<script>alert('xss')</script>", "priority": "high", "created_by": "abuse-tester"}, TOKEN)
 test("XSS in task title -> stored safely (no execution)", s == 200 or s >= 400)
 
 # ============================================================
 print("\n=== 9. WRONG TYPES EVERYWHERE ===")
-s, d = post("/tasks", {"title": 12345, "priority": "high", "created_by": "idiot-user"}, TOKEN)
+s, d = post("/tasks", {"title": 12345, "priority": "high", "created_by": "abuse-tester"}, TOKEN)
 test("Numeric task title -> handles gracefully", True)
 
-s, d = post("/tasks", {"title": "ok", "priority": 999, "created_by": "idiot-user"}, TOKEN)
+s, d = post("/tasks", {"title": "ok", "priority": 999, "created_by": "abuse-tester"}, TOKEN)
 test("Numeric priority -> handles gracefully", True)
 
-s, d = post("/tasks", {"title": "ok", "priority": "high", "created_by": "idiot-user", "blocked_by": "not-a-list"}, TOKEN)
+s, d = post("/tasks", {"title": "ok", "priority": "high", "created_by": "abuse-tester", "blocked_by": "not-a-list"}, TOKEN)
 test("blocked_by as string -> handles gracefully", True)
 
-s, d = post("/tasks", {"title": "ok", "priority": "high", "created_by": "idiot-user", "blocked_by": [999999]}, TOKEN)
+s, d = post("/tasks", {"title": "ok", "priority": "high", "created_by": "abuse-tester", "blocked_by": [999999]}, TOKEN)
 test("blocked_by with non-existent task -> handles gracefully", True)
 
-s, d = post("/budget", {"peer_id": "idiot-user", "token_budget": "one million"}, TOKEN)
+s, d = post("/budget", {"peer_id": "abuse-tester", "token_budget": "one million"}, TOKEN)
 test("Budget as string 'one million' -> rejected", s == 400 or "error" in str(d))
 
-s, d = post("/budget", {"peer_id": "idiot-user", "token_budget": 1e20}, TOKEN)
+s, d = post("/budget", {"peer_id": "abuse-tester", "token_budget": 1e20}, TOKEN)
 test("Budget as 1e20 -> handles gracefully", True)
 
-s, d = post("/config", {"peer_id": "idiot-user", "poll_interval_ms": -5000}, TOKEN)
+s, d = post("/config", {"peer_id": "abuse-tester", "poll_interval_ms": -5000}, TOKEN)
 test("Negative poll interval -> clamped or rejected", True)
 
-s, d = post("/config", {"peer_id": "idiot-user", "poll_interval_ms": 99999999}, TOKEN)
+s, d = post("/config", {"peer_id": "abuse-tester", "poll_interval_ms": 99999999}, TOKEN)
 test("Huge poll interval -> clamped or rejected", True)
 
 # ============================================================

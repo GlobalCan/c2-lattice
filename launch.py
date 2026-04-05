@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Area10 Command Center — One-Command Launcher
+C2 Lattice — One-Command Launcher
 
 Usage:
     python launch.py              Start broker + open dashboard
@@ -150,7 +150,7 @@ def main():
 
     print()
     print("=" * 50)
-    print("  Area10 Command Center is ready!")
+    print("  C2 Lattice is ready!")
     print("=" * 50)
     print()
     print("  Dashboard:  " + dashboard_url)

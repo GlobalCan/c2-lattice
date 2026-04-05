@@ -2,7 +2,7 @@
 
 You have access to **c2-lattice** MCP tools for coordinating multi-agent work.
 
-## When to use Area10
+## When to use C2 Lattice
 
 When the user says any of: "go execute", "build it", "go", "let's do it", "start building", "execute the plan", "spin up workers", "delegate this" — switch from planning to execution using the c2-lattice tools.
 

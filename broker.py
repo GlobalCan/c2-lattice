@@ -2116,7 +2116,7 @@ class BrokerHandler(BaseHTTPRequestHandler):
             # Write system prompt to temp file for --append-system-prompt-file
             if role == "architect":
                 init_msg = (
-                    f"You are {peer_id}, an Area10 architect agent. "
+                    f"You are {peer_id}, an C2 Lattice architect agent. "
                     "CRITICAL: You MUST use c2-lattice MCP tools to coordinate ALL work. "
                     "Do NOT use the Agent tool or local subagents for parallel work. "
                     "Your workflow: "
@@ -2130,7 +2130,7 @@ class BrokerHandler(BaseHTTPRequestHandler):
                 )
             else:
                 init_msg = (
-                    f"You are {peer_id}, an Area10 worker agent. "
+                    f"You are {peer_id}, an C2 Lattice worker agent. "
                     "CRITICAL: Call list_peers FIRST to register. Then call list_tasks to find work. "
                     "Claim a task with claim_task, do the work, then complete_task with artifacts. "
                     "After completing, call list_tasks for more work. If blocked, call raise_blocker. "
@@ -2141,15 +2141,15 @@ class BrokerHandler(BaseHTTPRequestHandler):
                 f.write(init_msg)
 
             if sys.platform == "win32":
-                cmd_line = f'title Area10-{peer_id} && set PEER_ROLE={role} && set PEER_ID={peer_id} && claude --append-system-prompt-file "{prompt_file}"'
+                cmd_line = f'title C2-{peer_id} && set PEER_ROLE={role} && set PEER_ID={peer_id} && claude --append-system-prompt-file "{prompt_file}"'
                 if shutil.which("wt"):
                     subprocess.Popen(
-                        ["wt", "-w", "0", "nt", "--title", f"Area10-{peer_id}", "cmd", "/k", cmd_line],
+                        ["wt", "-w", "0", "nt", "--title", f"C2-{peer_id}", "cmd", "/k", cmd_line],
                         env=env,
                     )
                 else:
                     subprocess.Popen(
-                        ["cmd", "/c", "start", f"Area10-{peer_id}", "cmd", "/k", cmd_line],
+                        ["cmd", "/c", "start", f"C2-{peer_id}", "cmd", "/k", cmd_line],
                         env=env,
                         creationflags=0x00000200,  # CREATE_NEW_PROCESS_GROUP
                     )

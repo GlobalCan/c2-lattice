@@ -469,7 +469,7 @@ def main():
             dreq = urllib.request.Request(f"{BROKER_URL}/dashboard")
             with urllib.request.urlopen(dreq, timeout=5) as resp:
                 html = resp.read().decode()
-            test("Dashboard has command center", (200, {"has_cmd": "Command Center" in html}),
+            test("Dashboard has title", (200, {"has_cmd": "C2 Lattice" in html}),
                  lambda s, d: d["has_cmd"])
             test("Dashboard has bento grid", (200, {"has_grid": "bento" in html or "grid" in html}),
                  lambda s, d: d["has_grid"])

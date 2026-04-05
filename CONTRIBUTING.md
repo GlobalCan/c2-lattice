@@ -38,7 +38,7 @@ python test_broker.py    # Unit tests for broker endpoints
 python stress_test.py    # Concurrent load and edge cases
 python e2e_test.py       # End-to-end workflow tests
 python chaos_test.py     # Fault injection and recovery
-python idiot_test.py     # Abuse scenarios and input validation
+python abuse_test.py     # Abuse scenarios and input validation
 ```
 
 If you add a new feature or endpoint, add corresponding tests. If you fix a bug, add a regression test.

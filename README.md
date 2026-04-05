@@ -142,7 +142,7 @@ python test_broker.py       # Unit + integration (104 tests)
 python stress_test.py       # Stress + edge cases (49 tests)
 python chaos_test.py        # Chaos + failure scenarios (27 tests)
 python e2e_test.py          # End-to-end pipeline
-python idiot_test.py        # Abuse resistance (59 tests)
+python abuse_test.py        # Abuse resistance (59 tests)
 ```
 
 ## How It Works
@@ -178,7 +178,7 @@ c2-lattice/
   stress_test.py     Stress tests (49)
   chaos_test.py      Chaos tests (27)
   e2e_test.py        E2E pipeline test
-  idiot_test.py      Abuse resistance tests (59)
+  abuse_test.py      Abuse resistance tests (59)
   CONTRIBUTING.md    Contribution guidelines
   LICENSE            MIT license
 ```

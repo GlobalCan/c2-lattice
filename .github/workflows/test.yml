@@ -23,4 +23,4 @@ jobs:
       - name: Run chaos tests
         run: python chaos_test.py
       - name: Run idiot tests
-        run: python idiot_test.py
+        run: python abuse_test.py

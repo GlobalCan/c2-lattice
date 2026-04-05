@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Idiot Test: Do everything wrong and see what happens.
+Abuse Resilience: Do everything wrong and see what happens.
 A real user who has never read docs, clicks randomly, sends garbage,
 and doesn't understand what anything means.
 """
@@ -54,7 +54,7 @@ def test(name, passed):
         print(f"  [FAIL] {name}")
 
 print("=" * 60)
-print("  IDIOT TEST: Break everything, crash nothing")
+print("  ABUSE RESILIENCE: Break everything, crash nothing")
 print("=" * 60)
 
 # ============================================================
@@ -310,4 +310,4 @@ if FAILURES:
         print(f"    - {name}")
     sys.exit(1)
 else:
-    print("\n  COMPLETELY IDIOT-PROOF. NOTHING CRASHED.")
+    print("\n  COMPLETELY ABUSE-PROOF. NOTHING CRASHED.")
